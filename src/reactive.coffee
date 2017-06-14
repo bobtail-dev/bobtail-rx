@@ -904,6 +904,12 @@ rxFactory = (_) ->
      .filter (x) -> x?
      .value()
 
+  prepContents = (contents) ->
+    if contents instanceof ObsCell or contents instanceof ObsArray or _.isArray contents
+      contents = rx.flatten contents
+    return contents
+
+
   flattenHelper = (x) ->
     if x instanceof ObsArray then flattenHelper x.all()
     else if x instanceof ObsSet then flattenHelper Array.from x.values()
@@ -980,14 +986,11 @@ rxFactory = (_) ->
 # end rxFactory definition
 
 do(root = this, factory = rxFactory) ->
-  deps = ['underscore']
   if define?.amd?
-    define deps, factory
+    define ['underscore'], factory
   else if module?.exports?
-    _ = require 'underscore'
-    rx = factory _
-    module.exports = rx
+    module.exports = factory require 'underscore'
   else if root._?
     root.rx = factory root._
   else
-    throw "Dependencies are not met for bobtail-core: _ not found"
+    throw "Dependencies are not met for reactive: _ not found"
