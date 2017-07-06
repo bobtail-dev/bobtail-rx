@@ -1,6 +1,6 @@
 {
-  "name": "bobtail",
-  "main": "dist/reactive-coffee.js",
+  "name": "bobtail-rx",
+  "main": "dist/main.js",
   "version": "2.0.0",
   "ignore": [
     "**/.*",
