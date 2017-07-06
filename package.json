@@ -9,39 +9,31 @@
     "name": "Richard Mehlinger",
     "url": "http://rmehlinger.com/"
   },
-  "main": "dist/reactive-coffee",
-  "devDependencies": {
-    "bower": "^1.8.0",
-    "grunt": "^1.0.1",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-coffee": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-connect": "^1.0.2",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-uglify": "^2.1.0",
-    "grunt-karma": "^2.0.0",
-    "grunt-open": "^0.2.3",
-    "grunt-regarde": "^0.1.1",
-    "grunt-ts": "^6.0.0-beta.11",
-    "jasmine-core": "^2.5.2",
-    "karma": "^1.4.1",
-    "karma-chrome-launcher": "^2.0.0",
-    "karma-coffee-preprocessor": "^1.0.1",
-    "karma-jasmine": "^1.1.0",
-    "karma-phantomjs-launcher": "^1.0.2",
-    "matchdep": "^1.0.1",
-    "phantomjs": "^2.1.1",
-    "phantomjs-prebuilt": "^2.1.14",
-    "serve-static": "^1.11.2",
-    "typescript": "^2.1.6"
-  },
+  "main": "dist/main.js",
   "scripts": {
-    "test": "grunt test && node test/nodeTest.js"
+    "build": "npm run clean && npm run browserify && npm run minify",
+    "clean": "rm -rf dist && mkdir dist",
+    "browserify": "browserify src/main.js --verbose > dist/main.js",
+    "minify": "uglifyjs -mc --source-map -o dist/main.min.js dist/main.js",
+    "typescript": "",
+    "test": "jasmine"
+  },
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "bower": "^1.8.0",
+    "browserify": "^14.4.0",
+    "coffeeify": "^2.1.0",
+    "exorcist": "^0.4.0",
+    "jasmine": "^2.6.0",
+    "jasmine-core": "^2.5.2",
+    "jquery": "^3.2.1",
+    "typescript": "^2.1.6",
+    "uglify-es": "^3.0.23"
   },
   "engines": {
     "node": ">=0.8.0"
   },
   "dependencies": {
-    "underscore": "~1.6.0"
+    "underscore": "~1.8.3"
   }
 }
