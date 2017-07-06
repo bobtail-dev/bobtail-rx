@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import rx from '../src/main.js';
+import * as rx from '../src/main.js';
 let {snap, bind, Ev} = rx;
 jasmine.CATCH_EXCEPTIONS = false;
 
