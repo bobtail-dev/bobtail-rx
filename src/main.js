@@ -1,3 +1,4 @@
+import _ from 'underscore';
 
 let rxFactory = function(_) {
   let asyncBind, bind, depMgr, lagBind, postLagBind, promiseBind, recorder;
@@ -1324,14 +1325,4 @@ let rxFactory = function(_) {
 };
 // end rxFactory definition
 
-(function(root, factory) {
-  if ((typeof define !== 'undefined' && define !== null ? define.amd : undefined) != null) {
-    return define(['underscore'], factory);
-  } else if ((typeof module !== 'undefined' && module !== null ? module.exports : undefined) != null) {
-    return module.exports = factory(require('underscore'));
-  } else if (root._ != null) {
-    return root.rx = factory(root._);
-  } else {
-    throw "Dependencies are not met for reactive: _ not found";
-  }
-})(this, rxFactory);
+export default rxFactory(_);
