@@ -1,3 +1,4 @@
+
 let rxFactory = function(_) {
   let asyncBind, bind, depMgr, lagBind, postLagBind, promiseBind, recorder;
   let rx = {};
@@ -743,7 +744,7 @@ let rxFactory = function(_) {
   rx.concat = function(...xss) {
     let xs;
     let ys = new MappedDepArray();
-    let casted = xss.map(xs => rxt.cast(xs, 'array'));
+    let casted = xss.map(xs => rx.cast(xs, 'array'));
     let repLens = ((() => {
       let result = [];
       for (xs of Array.from(xss)) {         result.push(0);
@@ -1045,13 +1046,15 @@ let rxFactory = function(_) {
     if (_.isArray(obj)) {
       let arr = rx.array(_.clone(obj));
       Object.defineProperties(obj, _.object(
-        Array.from(_.functions(arr)).filter((methName) => methName !== 'length').map((methName) =>
-          (function(methName) {
+        Object.getOwnPropertyNames(SrcArray.prototype)
+          .concat(Object.getOwnPropertyNames(ObsArray.prototype))
+          .concat(Object.getOwnPropertyNames(ObsBase.prototype))
+          .filter((methName) => methName !== 'length').map((methName) => {
             let meth = obj[methName];
             let newMeth = function(...args) {
               let res;
-              if (meth != null) { res = meth.call(obj, ...Array.from(args)); }
-              arr[methName].call(arr, ...Array.from(args));
+              if (meth != null) { res = meth.call(obj, ...args); }
+              arr[methName].call(arr, ...args);
               return res;
             };
             spec = {
@@ -1061,7 +1064,7 @@ let rxFactory = function(_) {
               writable: true
             };
             return [methName, spec];
-          })(methName))
+          })
       )
       );
       return obj;
@@ -1116,7 +1119,7 @@ let rxFactory = function(_) {
       
       for (let name of Array.from(Object.getOwnPropertyNames(obj))) {
         let val = obj[name];
-        if (val instanceof ObsMap || val instanceof ObsCell || val instanceof ObsArray) { continue; }
+        if (val instanceof ObsBase) { continue; }
         let type =
           _.isFunction(val) ? null
           : _.isArray(val) ? 'array'
