@@ -36,7 +36,7 @@ let mkMap = function(xs) {
 
 let sum = function(xs) {
   let n = 0;
-  for (let x of Array.from(xs)) { n += x; }
+  for (let x of xs) { n += x; }
   return n;
 };
 
@@ -73,7 +73,7 @@ export class DepMgr {
           this.buffer = [];
           this.events.clear();
 
-          bufferedPubs.map(function(...args) { let [ev, data] = Array.from(args[0]); return ev.pub(data); });
+          bufferedPubs.map(([ev, data]) => ev.pub(data));
           allDeps.forEach(c => c.refresh());
         } finally {
           allDeps.forEach(cell => cell._shield = false);
@@ -104,16 +104,12 @@ export class Ev {
   pub(data) {
     if (depMgr.buffering) {
       depMgr.buffer.push([this, data]);
-      return depMgr.events.add(this);
+      depMgr.events.add(this);
     } else {
-      return (() => {
-        let result = [];
-        for (let uid in this.subs) {
-          let listener = this.subs[uid];
-          result.push(listener(data));
-        }
-        return result;
-      })();
+      for (let uid in this.subs) {
+        let listener = this.subs[uid];
+        listener(data);
+      }
     }
   }
   unsub(uid) {
@@ -489,9 +485,8 @@ export class ObsArray extends ObsBase {
   readonly() { return new DepArray(() => this.all()); }
   rawCells() { return this._cells; }
   at(i) {
-    recorder.sub(this.onChange, function(...args) {
+    recorder.sub(this.onChange, function([index, removed, added]) {
       // if elements were inserted or removed prior to this element
-      let [index, removed, added] = Array.from(args[0]);
       if ((index <= i) && (removed.length !== added.length))
         return true;
       // if this element is one of the elements changed
@@ -502,19 +497,18 @@ export class ObsArray extends ObsBase {
     return (this._cells[i] != null ? this._cells[i].get() : undefined);
   }
   length() {
-    recorder.sub(this.onChangeCells, function(...args) { let [index, removed, added] = Array.from(args[0]); return removed.length !== added.length; });
+    recorder.sub(this.onChangeCells, ([index, removed, added]) => removed.length !== added.length);
     return this._cells.length;
   }
   size() { return this.length(); }
   map(f) {
     let ys = new MappedDepArray();
-    autoSub(this.onChangeCells, (...args) => {
-      let [index, removed, added] = Array.from(args[0]);
-      for (var cell of Array.from(ys._cells.slice(index, index + removed.length))) {
+    autoSub(this.onChangeCells, ([index, removed, added]) => {
+      let cell;
+      for (let cell of ys._cells.slice(index, index + removed.length)) {
         cell.disconnect();
       }
-      let newCells =
-        added.map(item => cell = bind(() => f(item.get())));
+      let newCells = added.map(item => cell = bind(() => f(item.get())));
       return ys.realSpliceCells(index, removed.length, newCells);
     });
     return ys;
@@ -537,10 +531,8 @@ export class ObsArray extends ObsBase {
   indexed() {
     if ((this._indexed == null)) {
       this._indexed = new IndexedDepArray();
-      autoSub(this.onChangeCells, (...args) => {
-        let [index, removed, added] = Array.from(args[0]);
-        return this._indexed.realSpliceCells(index, removed.length, added);
-      });
+      autoSub(this.onChangeCells, ([index, removed, added]) =>
+        this._indexed.realSpliceCells(index, removed.length, added));
     }
     return this._indexed;
   }
@@ -558,24 +550,15 @@ export class ObsArray extends ObsBase {
     return this.realSpliceCells(index, count, additions.map(cell));
   }
   _update(val, diff) {
-    let left;
-    if (diff == null) { ({ diff } = this); }
+    let left, splices;
     let old = snap(() => (Array.from(this._cells).map((x) => x.get())));
     let fullSplice = [0, old.length, val];
-    let splices =
-      (diff != null) ?
-        (left = permToSplices(old.length, val, diff(old, val))) != null ? left : [fullSplice]
-      :
-        [fullSplice];
-    //console.log(old, val, splices, fullSplice, diff, @diff)
-    return (() => {
-      let result = [];
-      for (let splice of Array.from(splices)) {
-        let [index, count, additions] = Array.from(splice);
-        result.push(this.realSplice(index, count, additions));
-      }
-      return result;
-    })();
+    if(diff == null){
+      ({ diff } = this);
+    }
+    left = permToSplices(old.length, val, diff(old, val));
+    splices = left != null ? left : [fullSplice];
+    return splices.map(([index, count, additions]) => this.realSplice(index, count, additions));
   }
 }
 
@@ -589,17 +572,15 @@ export class SrcArray extends ObsArray {
     let i = _(this.raw()).indexOf(x);
     if (i >= 0) { return this.removeAt(i); }
   }
-  removeAll(x) { return transaction(() => {
-    let i = _(snap(() => this.all())).indexOf(x);
-    return (() => {
-      let result = [];
+  removeAll(x) {
+    return transaction(() => {
+      let i = _(snap(() => this.all())).indexOf(x);
       while (i >= 0) {
         this.removeAt(i);
-        result.push(i = _(snap(() => this.all())).indexOf(x));
+        i = snap(() => _(this.all().slice(i))).indexOf(x);
       }
-      return result;
-    })();
-  }); }
+    });
+  }
   removeAt(index) {
     let val = snap(() => this.at(index));
     this.splice(index, 1);
@@ -675,19 +656,11 @@ export class IndexedDepArray extends ObsArray {
   // TODO duplicate code with ObsArray
   map(f) {
     let ys = new MappedDepArray();
-    autoSub(this.onChangeCells, (...args) => {
-      let [index, removed, added] = Array.from(args[0]);
-      for (var cell of Array.from(ys._cells.slice(index, index + removed.length))) {
+    autoSub(this.onChangeCells, ([index, removed, added]) => {
+      for (let cell of ys._cells.slice(index, index + removed.length)) {
         cell.disconnect();
       }
-      let newCells =
-        (() => {
-        let result = [];
-        for (var [item, icell] of Array.from(added)) {
-          result.push(cell = bind(() => f(item.get(), icell)));
-        }
-        return result;
-      })();
+      let newCells = added.map(([item, icell]) => bind(() => f(item.get(), icell)));
       return ys.realSpliceCells(index, removed.length, newCells);
     });
     return ys;
@@ -702,14 +675,12 @@ export class IndexedDepArray extends ObsArray {
       i = iterable[offset];
       i.set(index + additions.length + offset);
     }
-    let newIs = ((() => {
-      let asc, end;
-      let result = [];
-      for (i = 0, end = additions.length, asc = 0 <= end; asc ? i < end : i > end; asc ? i++ : i--) {
-        result.push(cell(index + i));
-      }
-      return result;
-    })());
+    let newIs = [];
+    let end = additions.length;
+    let asc = 0 <= end;
+    for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
+      newIs.push(cell(index + i));
+    }
     this.is.splice(index, count, ...Array.from(newIs));
 
     let addedElems = snap(() => Array.from(additions).map((x3) => x3.get()));
@@ -724,7 +695,7 @@ export class DepArray extends ObsArray {
   constructor(f, diff) {
     super([], diff);
     this.f = f;
-    autoSub((bind(() => Array.from(this.f()))).onSet, (...args) => { let [old, val] = Array.from(args[0]); return this._update(val); });
+    autoSub((bind(() => Array.from(this.f()))).onSet, ([old, val]) => this._update(val));
   }
 }
 
@@ -735,27 +706,19 @@ export class IndexedArray extends DepArray {
   }
   map(f) {
     let ys = new MappedDepArray();
-    autoSub(this._cells.onChange, function(...args) {
-      let [index, removed, added] = Array.from(args[0]);
-      return ys.realSplice(index, removed.length, added.map(f));
-    });
+    autoSub(this._cells.onChange, ([index, removed, added]) =>
+      ys.realSplice(index, removed.length, added.map(f))
+    );
     return ys;
   }
 }
 
 export let concat = function(...xss) {
-  let xs;
   let ys = new MappedDepArray();
   let casted = xss.map(xs => cast(xs, 'array'));
-  let repLens = ((() => {
-    let result = [];
-    for (xs of Array.from(xss)) {         result.push(0);
-    }
-    return result;
-  })());
+  let repLens = xss.map(() => 0);
   casted.forEach((xs, i) =>
-    autoSub(xs.onChange, function(...args) {
-      let [index, removed, added] = Array.from(args[0]);
+    autoSub(xs.onChange, function([index, removed, added]) {
       let xsOffset = sum(repLens.slice(0, i));
       repLens[i] += added.length - removed.length;
       return ys.realSplice(xsOffset + index, removed.length, added);
@@ -821,36 +784,31 @@ export class ObsMap extends ObsBase {
     let val;
     let otherMap = objToJSMap(other);
     let ret = new Map(this._base);
-    let removals = (() => {
-      return _.chain(Array.from(this._base.keys()))
-       .difference(Array.from(otherMap.keys()))
-       .map(k => [k, mapPop(this._base, k)])
-       .value();
-    })();
+    let removals = _
+      .chain(Array.from(this._base.keys()))
+      .difference(Array.from(otherMap.keys()))
+      .map(k => [k, mapPop(this._base, k)])
+      .value();
 
-    let additions = (() => {
-      return _.chain(Array.from(otherMap.keys()))
-       .difference(Array.from(this._base.keys()))
-       .map(k => {
-         val = otherMap.get(k);
-         this._base.set(k, val);
-         return [k, val];
-     })
-       .value();
-    })();
+    let additions = _
+      .chain(Array.from(otherMap.keys()))
+      .difference(Array.from(this._base.keys()))
+      .map(k => {
+        val = otherMap.get(k);
+        this._base.set(k, val);
+        return [k, val];
+      })
+      .value();
 
-    let changes = (() => {
-      let k;
-      return _.chain(Array.from(otherMap))
-       .filter((...args) => { [k, val] = Array.from(args[0]); return this._base.has(k) && (this._base.get(k) !== val); })
-       .map((...args) => {
-         [k, val] = Array.from(args[0]);
-         let old = this._base.get(k);
-         this._base.set(k, val);
-         return [k, [old, val]];
-     })
-       .value();
-    })();
+    let changes = _
+      .chain(Array.from(otherMap))
+      .filter(([k, val]) => this._base.has(k) && this._base.get(k) !== val)
+      .map(([k, val]) => {
+        let old = this._base.get(k);
+        this._base.set(k, val);
+        return [k, [old, val]];
+      })
+      .value();
 
     transaction(() => {
       if (removals.length) { this.onRemove.pub(new Map(removals)); }
@@ -888,7 +846,7 @@ export class DepMap extends ObsMap {
     super();
     this.f = f;
     let c = bind(this.f);
-    autoSub(c.onSet, (...args) => { let [old, val] = Array.from(args[0]); return this._update(val); });
+    autoSub(c.onSet, ([old, val]) => this._update(val));
   }
 }
 
@@ -914,7 +872,7 @@ export class ObsSet extends ObsBase {
     this.onChange = this._mkEv(() => [this._base, new Set()]);  // additions, removals
   }
   has(key) {
-    this.subAll(function(...args) { let [additions, removals] = Array.from(args[0]); return additions.has(key) || removals.has(key); });
+    this.subAll(([additions, removals]) => additions.has(key) || removals.has(key));
     return this._base.has(key);
   }
   all() {
@@ -925,7 +883,7 @@ export class ObsSet extends ObsBase {
   values() { return this.all(); }
   entries() { return this.all(); }
   size() {
-    this.subAll(function(...args) { let [additions, removals] = Array.from(args[0]); return additions.size !== removals.size; });
+    this.subAll(([additions, removals]) => additions.size !== removals.size);
     return this._base.size;
   }
   union(other) { return new DepSet(() => union(this.all(), _castOther(other))); }
@@ -1002,29 +960,32 @@ export class DepSet extends ObsSet {
     super();
     this.f = f;
     let c = bind(this.f);
-    autoSub(c.onSet, (...args) => { let [old, val] = Array.from(args[0]); return this._update(val); });
+    autoSub(c.onSet, ([old, val]) => this._update(val));
   }
 }
 
-export let liftSpec = obj =>
-  _.object((() => {
-    let result = [];
-
-    for (let name of Array.from(Object.getOwnPropertyNames(obj))) {
-      var val = obj[name];
-      if ((val != null) && [ObsMap, ObsCell, ObsArray, ObsSet].some(cls => val instanceof cls)) { continue; }
-      let type =
-        _.isFunction(val) ? null
-        : _.isArray(val) ? 'array'
-        : val instanceof Set ? 'set'
-        : val instanceof Map ? 'map'
-        : 'cell';
-      result.push([name, {type, val}]);
+export let liftSpec = obj => {
+  let result = [];
+  let val, type;
+  for (let name of Object.getOwnPropertyNames(obj)) {
+    val = obj[name];
+    if (val != null && [ObsMap, ObsCell, ObsArray, ObsSet].some(cls => val instanceof cls)) {
+      continue;
+    } else if (_.isFunction(val)) {
+      type = null;
+    } else if (_.isArray(val)) {
+      type = 'array';
+    } else if (val instanceof Set) {
+      type = 'set';
+    } else if (val instanceof Map) {
+      type = 'map';
+    } else {
+      type = 'cell';
     }
-
-    return result;
-  })())
-;
+    result.push([name, {type, val}]);
+  }
+  return _.object(result);
+};
 
 export let lift = function(x, fieldspec) {
   if (fieldspec == null) {
@@ -1116,7 +1077,7 @@ export let reactify = function(obj, fieldspec) {
 export let autoReactify = obj => {
   let result = [];
 
-  for (let name of Array.from(Object.getOwnPropertyNames(obj))) {
+  for (let name of Object.getOwnPropertyNames(obj)) {
     let val = obj[name];
     if (val instanceof ObsBase) {
       continue;
@@ -1199,7 +1160,7 @@ export let flatten = xs => new DepArray(() => _
   .value()
 );
 
-var flattenHelper = function(x) {
+let flattenHelper = function(x) {
   if (x instanceof ObsArray) { return flattenHelper(x.all());
   } else if (x instanceof ObsSet) { return flattenHelper(Array.from(x.values()));
   } else if (x instanceof ObsCell) { return flattenHelper(x.get());
@@ -1213,24 +1174,19 @@ export let cellToMap = cell => new DepMap(function() { return cell.get(); });
 export let cellToSet = c => new DepSet(function() { return c.get(); });
 
 // O(n) using hash key
-export let basicDiff = function(key) { if (key == null) { key = smartUidify; } return function(oldXs, newXs) {
-  let x;
-  let oldKeys = mkMap((() => {
-    let result = [];
-    for (let i = 0; i < oldXs.length; i++) {
-      x = oldXs[i];
-      result.push([key(x), i]);
-    }
-    return result;
-  })());
-  return ((() => {
-    let result1 = [];
-    for (x of Array.from(newXs)) {         var left;
-    result1.push(((left = oldKeys[key(x)]) != null ? left : -1));
-    }
-    return result1;
-  })());
-}; };
+export let basicDiff = function(key) {
+  if (key == null) {
+    key = smartUidify;
+  }
+  return function(oldXs, newXs) {
+    let oldKeys = mkMap(oldXs.map((x, i) => [key(x), i]));
+    let left;
+    return newXs.map(x => {
+      left = oldKeys[key(x)];
+      return left != null ? left : -1;
+    });
+  };
+};
 
 // This is invasive; WeakMaps can't come soon enough....
 export let uidify = x =>
@@ -1255,39 +1211,32 @@ export let smartUidify = function(x) {
 // Note: this gives up and returns null if there are reorderings or
 // duplications; only handles (multiple) simple insertions and removals
 // (batching them together into splices).
-var permToSplices = function(oldLength, newXs, perm) {
+let permToSplices = function(oldLength, newXs, perm) {
   let i;
   if (!newXs.length) {
     return null; // just do a full splice if we're emptying the array
   }
-  let refs = ((() => {
-    let result = [];
-    for (i of Array.from(perm)) {         if (i >= 0) {
-        result.push(i);
-      }
-    }
-    return result;
-  })());
-  if (_.some((() => {
-    let asc, end;
-    let result1 = [];
-    for (i = 0, end = refs.length - 1, asc = 0 <= end; asc ? i < end : i > end; asc ? i++ : i--) {
-      result1.push((refs[i + 1] - refs[i]) <= 0);
-    }
-    return result1;
-  })())) { return null; }
+  let refs = perm.filter(i => i >= 0);
+  let end = refs.length -1;
+  let asc = 0 <= end;
+  let giveUp = [];
+  for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
+    giveUp.push((refs[i + 1] - refs[i]) <= 0);
+  }
+  if (giveUp.some(_.identity)) { return null; }
+
   let splices = [];
   let last = -1;
   i = 0;
   while (i < perm.length) {
     // skip over any good consecutive runs
-    while ((i < perm.length) && (perm[i] === (last + 1))) {
+    while (i < perm.length && perm[i] === last + 1) {
       last += 1;
       i += 1;
     }
     // lump any additions into this splice
     let splice = {index: i, count: 0, additions: []};
-    while ((i < perm.length) && (perm[i] === -1)) {
+    while (i < perm.length && perm[i] === -1) {
       splice.additions.push(newXs[i]);
       i += 1;
     }
@@ -1297,7 +1246,7 @@ var permToSplices = function(oldLength, newXs, perm) {
     // many remaining old elements were logically removed.
     let cur = i === perm.length ? oldLength : perm[i];
     splice.count = cur - (last + 1);
-    if ((splice.count > 0) || (splice.additions.length > 0)) {
+    if (splice.count > 0 || splice.additions.length > 0) {
       splices.push([splice.index, splice.count, splice.additions]);
     }
     last = cur;
