@@ -1,8 +1,8 @@
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
-    define('bobtail-rx', ['exports', 'underscore'], factory);
+    define("bobtail-rx", ["exports", "underscore"], factory);
   } else if (typeof exports !== "undefined") {
-    factory(exports, require('underscore'));
+    factory(exports, require("underscore"));
   } else {
     var mod = {
       exports: {}
@@ -11,7 +11,7 @@
     global.rx = mod.exports;
   }
 })(this, function (exports, _underscore) {
-  'use strict';
+  "use strict";
 
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -145,7 +145,7 @@
 
   var popKey = function popKey(x, k) {
     if (!(k in x)) {
-      throw new Error('object has no key ' + k);
+      throw new Error("object has no key " + k);
     }
     var v = x[k];
     delete x[k];
@@ -207,7 +207,7 @@
     var _iteratorError2 = undefined;
 
     try {
-      for (var _iterator2 = Array.from(xs)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      for (var _iterator2 = xs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
         var x = _step2.value;
         n += x;
       }
@@ -249,7 +249,7 @@
 
 
     _createClass(DepMgr, [{
-      key: 'transaction',
+      key: "transaction",
       value: function transaction(f) {
         var res = void 0;
         this.buffering += 1;
@@ -274,11 +274,10 @@
               this.buffer = [];
               this.events.clear();
 
-              bufferedPubs.map(function () {
-                var _Array$from = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-                    _Array$from2 = _slicedToArray(_Array$from, 2),
-                    ev = _Array$from2[0],
-                    data = _Array$from2[1];
+              bufferedPubs.map(function (_ref2) {
+                var _ref3 = _slicedToArray(_ref2, 2),
+                    ev = _ref3[0],
+                    data = _ref3[1];
 
                 return ev.pub(data);
               });
@@ -313,7 +312,7 @@
     }
 
     _createClass(Ev, [{
-      key: 'sub',
+      key: "sub",
       value: function sub(listener) {
         var uid = mkuid();
         if (this.init != null) {
@@ -325,33 +324,27 @@
       // callable only by the src
 
     }, {
-      key: 'pub',
+      key: "pub",
       value: function pub(data) {
-        var _this = this;
-
         if (depMgr.buffering) {
           depMgr.buffer.push([this, data]);
-          return depMgr.events.add(this);
+          depMgr.events.add(this);
         } else {
-          return function () {
-            var result = [];
-            for (var uid in _this.subs) {
-              var listener = _this.subs[uid];
-              result.push(listener(data));
-            }
-            return result;
-          }();
+          for (var uid in this.subs) {
+            var listener = this.subs[uid];
+            listener(data);
+          }
         }
       }
     }, {
-      key: 'unsub',
+      key: "unsub",
       value: function unsub(uid) {
         return popKey(this.subs, uid);
       }
       // listener is subscribed only for the duration of the context
 
     }, {
-      key: 'scoped',
+      key: "scoped",
       value: function scoped(listener, context) {
         var uid = this.sub(listener);
         try {
@@ -429,7 +422,7 @@
 
 
     _createClass(Recorder, [{
-      key: 'record',
+      key: "record",
       value: function record(dep, f) {
         if (this.stack.length > 0 && !this.isMutating) {
           (0, _underscore2.default)(this.stack).last().addNestedBind(dep);
@@ -450,7 +443,7 @@
         }
       }
     }, {
-      key: 'sub',
+      key: "sub",
       value: function sub(event, condFn) {
         if (condFn == null) {
           condFn = function condFn() {
@@ -473,14 +466,14 @@
         }
       }
     }, {
-      key: 'addCleanup',
+      key: "addCleanup",
       value: function addCleanup(cleanup) {
         if (this.stack.length > 0) {
           return (0, _underscore2.default)(this.stack).last().addCleanup(cleanup);
         }
       }
     }, {
-      key: 'hideMutationWarnings',
+      key: "hideMutationWarnings",
       value: function hideMutationWarnings(f) {
         var wasHiding = this.hidingMutationWarnings;
         this.hidingMutationWarnings = true;
@@ -491,13 +484,15 @@
         }
       }
     }, {
-      key: 'fireMutationWarning',
+      key: "fireMutationWarning",
       value: function fireMutationWarning() {
-        console.warn('Mutation to observable detected during a bind context');
+        /*eslint-disable*/
+        console.warn("Mutation to observable detected during a bind context");
+        /*eslint-enable*/
         return this.onMutationWarning.pub(null);
       }
     }, {
-      key: 'mutating',
+      key: "mutating",
       value: function mutating(f) {
         if (this.stack.length > 0 && !this.hidingMutationWarnings) {
           this.fireMutationWarning();
@@ -511,7 +506,7 @@
         }
       }
     }, {
-      key: 'ignoring',
+      key: "ignoring",
       value: function ignoring(f) {
         var wasIgnoring = this.isIgnoring;
         this.isIgnoring = true;
@@ -526,7 +521,7 @@
     return Recorder;
   }();
 
-  var types = exports.types = { 'cell': 'cell', 'array': 'array', 'map': 'map', 'set': 'set' };
+  var types = exports.types = { "cell": "cell", "array": "array", "map": "map", "set": "set" };
 
   var _recorder = exports._recorder = new Recorder();
   var recorder = _recorder;
@@ -543,10 +538,10 @@
 
   var promiseBind = exports.promiseBind = function promiseBind(init, f) {
     return asyncBind(init, function () {
-      var _this2 = this;
+      var _this = this;
 
       return this.record(f).done(function (res) {
-        return _this2.done(res);
+        return _this.done(res);
       });
     });
   };
@@ -560,13 +555,13 @@
   var lagBind = exports.lagBind = function lagBind(lag, init, f) {
     var timeout = null;
     return asyncBind(init, function () {
-      var _this3 = this;
+      var _this2 = this;
 
       if (timeout != null) {
         clearTimeout(timeout);
       }
       return timeout = setTimeout(function () {
-        return _this3.done(_this3.record(f));
+        return _this2.done(_this2.record(f));
       }, lag);
     });
   };
@@ -574,7 +569,7 @@
   var postLagBind = exports.postLagBind = function postLagBind(init, f) {
     var timeout = null;
     return asyncBind(init, function () {
-      var _this4 = this;
+      var _this3 = this;
 
       var _record = this.record(f),
           val = _record.val,
@@ -584,7 +579,7 @@
         clearTimeout(timeout);
       }
       return timeout = setTimeout(function () {
-        return _this4.done(val);
+        return _this3.done(val);
       }, ms);
     });
   };
@@ -623,12 +618,12 @@
     }
 
     _createClass(ObsBase, [{
-      key: 'flatten',
+      key: "flatten",
       value: function flatten() {
         return _flatten(this);
       }
     }, {
-      key: 'subAll',
+      key: "subAll",
       value: function subAll(condFn) {
         if (condFn == null) {
           condFn = function condFn() {
@@ -639,12 +634,12 @@
         });
       }
     }, {
-      key: 'raw',
+      key: "raw",
       value: function raw() {
         return this._base;
       }
     }, {
-      key: '_mkEv',
+      key: "_mkEv",
       value: function _mkEv(f) {
         var ev = new Ev(f, this);
         this.events.push(ev);
@@ -678,19 +673,19 @@
     function ObsCell(_base) {
       _classCallCheck(this, ObsCell);
 
-      var _this5 = _possibleConstructorReturn(this, (ObsCell.__proto__ || Object.getPrototypeOf(ObsCell)).call(this));
+      var _this4 = _possibleConstructorReturn(this, (ObsCell.__proto__ || Object.getPrototypeOf(ObsCell)).call(this));
 
-      _this5._base = _base != null ? _base : null;
-      _this5.onSet = _this5._mkEv(function () {
-        return [null, _this5._base];
+      _this4._base = _base != null ? _base : null;
+      _this4.onSet = _this4._mkEv(function () {
+        return [null, _this4._base];
       }); // [old, new]
-      _this5._shield = false;
+      _this4._shield = false;
       var downstreamCells = function downstreamCells() {
-        return _this5.onSet.downstreamCells;
+        return _this4.onSet.downstreamCells;
       };
-      _this5.refreshAll = function () {
-        if (_this5.onSet.downstreamCells.size && !_this5._shield) {
-          _this5._shield = true;
+      _this4.refreshAll = function () {
+        if (_this4.onSet.downstreamCells.size && !_this4._shield) {
+          _this4._shield = true;
           var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(Array.from(downstreamCells()) || [])));
           _cells2.forEach(function (c) {
             return c._shield = true;
@@ -703,36 +698,36 @@
             _cells2.forEach(function (c) {
               return c._shield = false;
             });
-            _this5._shield = false;
+            _this4._shield = false;
           }
         }
       };
-      _this5.refreshSub = autoSub(_this5.onSet, _this5.refreshAll);
-      return _this5;
+      _this4.refreshSub = autoSub(_this4.onSet, _this4.refreshAll);
+      return _this4;
     }
 
     _createClass(ObsCell, [{
-      key: 'all',
+      key: "all",
       value: function all() {
-        var _this6 = this;
+        var _this5 = this;
 
         this.subAll(function () {
-          return !_this6._shield;
+          return !_this5._shield;
         });
         return this._base;
       }
     }, {
-      key: 'get',
+      key: "get",
       value: function get() {
         return this.all();
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
-        var _this7 = this;
+        var _this6 = this;
 
         return new DepCell(function () {
-          return _this7.all();
+          return _this6.all();
         });
       }
     }]);
@@ -750,15 +745,15 @@
     }
 
     _createClass(SrcCell, [{
-      key: 'set',
+      key: "set",
       value: function set(x) {
-        var _this9 = this;
+        var _this8 = this;
 
         return recorder.mutating(function () {
-          if (_this9._base !== x) {
-            var old = _this9._base;
-            _this9._base = x;
-            _this9.onSet.pub([old, x]);
+          if (_this8._base !== x) {
+            var old = _this8._base;
+            _this8._base = x;
+            _this8.onSet.pub([old, x]);
             return old;
           }
         });
@@ -774,20 +769,20 @@
     function DepCell(body, init) {
       _classCallCheck(this, DepCell);
 
-      var _this10 = _possibleConstructorReturn(this, (DepCell.__proto__ || Object.getPrototypeOf(DepCell)).call(this, init != null ? init : null));
+      var _this9 = _possibleConstructorReturn(this, (DepCell.__proto__ || Object.getPrototypeOf(DepCell)).call(this, init != null ? init : null));
 
-      _this10.body = body != null ? body : null;
-      _this10.refreshing = false;
-      _this10.nestedBinds = [];
-      _this10.cleanups = [];
-      _this10.upstreamEvents = new Set();
-      return _this10;
+      _this9.body = body != null ? body : null;
+      _this9.refreshing = false;
+      _this9.nestedBinds = [];
+      _this9.cleanups = [];
+      _this9.upstreamEvents = new Set();
+      return _this9;
     }
 
     _createClass(DepCell, [{
-      key: 'refresh',
+      key: "refresh",
       value: function refresh() {
-        var _this11 = this;
+        var _this10 = this;
 
         if (!this.refreshing) {
           var old = this._base;
@@ -804,8 +799,8 @@
           // such a lagBind is more desirable (in the face of changing dependencies)
           // and whether on-completion is what's most generalizable.
           var realDone = function realDone(_base) {
-            _this11._base = _base;
-            return _this11.onSet.pub([old, _this11._base]);
+            _this10._base = _base;
+            return _this10.onSet.pub([old, _this10._base]);
           };
           var recorded = false;
           var syncResult = null;
@@ -816,20 +811,20 @@
               // TODO document why @refreshing exists
               // guards against recursively evaluating this recorded
               // function (@body or an async body) when calling `.get()`
-              if (!_this11.refreshing) {
+              if (!_this10.refreshing) {
                 var res = void 0;
-                _this11.disconnect();
+                _this10.disconnect();
                 if (recorded) {
-                  throw new Error('this refresh has already recorded its dependencies');
+                  throw new Error("this refresh has already recorded its dependencies");
                 }
-                _this11.refreshing = true;
+                _this10.refreshing = true;
                 recorded = true;
                 try {
-                  res = recorder.record(_this11, function () {
+                  res = recorder.record(_this10, function () {
                     return f.call(env);
                   });
                 } finally {
-                  _this11.refreshing = false;
+                  _this10.refreshing = false;
                 }
                 if (isSynchronous) {
                   realDone(syncResult);
@@ -839,7 +834,7 @@
             },
             done: function done(x) {
               if (old !== x) {
-                if (_this11.refreshing) {
+                if (_this10.refreshing) {
                   isSynchronous = true;
                   return syncResult = x;
                 } else {
@@ -855,9 +850,9 @@
       // disconnect themselves as well
 
     }, {
-      key: 'disconnect',
+      key: "disconnect",
       value: function disconnect() {
-        var _this12 = this;
+        var _this11 = this;
 
         // TODO ordering of cleanup vs unsubscribes may require revisiting
         var _iteratorNormalCompletion3 = true;
@@ -913,21 +908,21 @@
         this.nestedBinds = [];
         this.cleanups = [];
         this.upstreamEvents.forEach(function (ev) {
-          return ev.downstreamCells.delete(_this12);
+          return ev.downstreamCells.delete(_this11);
         });
         return this.upstreamEvents.clear();
       }
       // called by recorder
 
     }, {
-      key: 'addNestedBind',
+      key: "addNestedBind",
       value: function addNestedBind(nestedBind) {
         return this.nestedBinds.push(nestedBind);
       }
       // called by recorder
 
     }, {
-      key: 'addCleanup',
+      key: "addCleanup",
       value: function addCleanup(cleanup) {
         return this.cleanups.push(cleanup);
       }
@@ -949,24 +944,24 @@
         diff = basicDiff();
       }
 
-      var _this13 = _possibleConstructorReturn(this, (ObsArray.__proto__ || Object.getPrototypeOf(ObsArray)).call(this));
+      var _this12 = _possibleConstructorReturn(this, (ObsArray.__proto__ || Object.getPrototypeOf(ObsArray)).call(this));
 
-      _this13._cells = _cells;
-      _this13.diff = diff;
-      _this13.onChange = _this13._mkEv(function () {
-        return [0, [], _this13._cells.map(function (c) {
+      _this12._cells = _cells;
+      _this12.diff = diff;
+      _this12.onChange = _this12._mkEv(function () {
+        return [0, [], _this12._cells.map(function (c) {
           return c.raw();
         })];
       }); // [index, removed, added]
-      _this13.onChangeCells = _this13._mkEv(function () {
-        return [0, [], _this13._cells];
+      _this12.onChangeCells = _this12._mkEv(function () {
+        return [0, [], _this12._cells];
       }); // [index, removed, added]
-      _this13._indexed = null;
-      return _this13;
+      _this12._indexed = null;
+      return _this12;
     }
 
     _createClass(ObsArray, [{
-      key: 'all',
+      key: "all",
       value: function all() {
         recorder.sub(this.onChange);
         return this._cells.map(function (c) {
@@ -974,37 +969,36 @@
         });
       }
     }, {
-      key: 'raw',
+      key: "raw",
       value: function raw() {
         return this._cells.map(function (c) {
           return c.raw();
         });
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
-        var _this14 = this;
+        var _this13 = this;
 
         return new DepArray(function () {
-          return _this14.all();
+          return _this13.all();
         });
       }
     }, {
-      key: 'rawCells',
+      key: "rawCells",
       value: function rawCells() {
         return this._cells;
       }
     }, {
-      key: 'at',
+      key: "at",
       value: function at(i) {
-        recorder.sub(this.onChange, function () {
-          // if elements were inserted or removed prior to this element
-          var _Array$from3 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from4 = _slicedToArray(_Array$from3, 3),
-              index = _Array$from4[0],
-              removed = _Array$from4[1],
-              added = _Array$from4[2];
+        recorder.sub(this.onChange, function (_ref4) {
+          var _ref5 = _slicedToArray(_ref4, 3),
+              index = _ref5[0],
+              removed = _ref5[1],
+              added = _ref5[2];
 
+          // if elements were inserted or removed prior to this element
           if (index <= i && removed.length !== added.length) return true;
           // if this element is one of the elements changed
           if (removed.length === added.length && i <= index + removed.length) return true;
@@ -1013,41 +1007,39 @@
         return this._cells[i] != null ? this._cells[i].get() : undefined;
       }
     }, {
-      key: 'length',
+      key: "length",
       value: function length() {
-        recorder.sub(this.onChangeCells, function () {
-          var _Array$from5 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from6 = _slicedToArray(_Array$from5, 3),
-              index = _Array$from6[0],
-              removed = _Array$from6[1],
-              added = _Array$from6[2];
+        recorder.sub(this.onChangeCells, function (_ref6) {
+          var _ref7 = _slicedToArray(_ref6, 3),
+              index = _ref7[0],
+              removed = _ref7[1],
+              added = _ref7[2];
 
           return removed.length !== added.length;
         });
         return this._cells.length;
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
         return this.length();
       }
     }, {
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
-        autoSub(this.onChangeCells, function () {
-          var _Array$from7 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from8 = _slicedToArray(_Array$from7, 3),
-              index = _Array$from8[0],
-              removed = _Array$from8[1],
-              added = _Array$from8[2];
+        autoSub(this.onChangeCells, function (_ref8) {
+          var _ref9 = _slicedToArray(_ref8, 3),
+              index = _ref9[0],
+              removed = _ref9[1],
+              added = _ref9[2];
 
           var _iteratorNormalCompletion5 = true;
           var _didIteratorError5 = false;
           var _iteratorError5 = undefined;
 
           try {
-            for (var _iterator5 = Array.from(ys._cells.slice(index, index + removed.length))[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            for (var _iterator5 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
               var cell = _step5.value;
 
               cell.disconnect();
@@ -1068,7 +1060,7 @@
           }
 
           var newCells = added.map(function (item) {
-            return cell = bind(function () {
+            return bind(function () {
               return f(item.get());
             });
           });
@@ -1077,57 +1069,57 @@
         return ys;
       }
     }, {
-      key: 'transform',
+      key: "transform",
       value: function transform(f, diff) {
-        var _this15 = this;
+        var _this14 = this;
 
         return new DepArray(function () {
-          return f(_this15.all());
+          return f(_this14.all());
         }, diff);
       }
     }, {
-      key: 'filter',
+      key: "filter",
       value: function filter(f) {
         return this.transform(function (arr) {
           return arr.filter(f);
         });
       }
     }, {
-      key: 'slice',
+      key: "slice",
       value: function slice(x, y) {
         return this.transform(function (arr) {
           return arr.slice(x, y);
         });
       }
     }, {
-      key: 'reduce',
+      key: "reduce",
       value: function reduce(f, init) {
         return this.all().reduce(f, init != null ? init : this.at(0));
       }
     }, {
-      key: 'reduceRight',
+      key: "reduceRight",
       value: function reduceRight(f, init) {
         return this.all().reduceRight(f, init != null ? init : this.at(0));
       }
     }, {
-      key: 'every',
+      key: "every",
       value: function every(f) {
         return this.all().every(f);
       }
     }, {
-      key: 'some',
+      key: "some",
       value: function some(f) {
         return this.all().some(f);
       }
     }, {
-      key: 'indexOf',
+      key: "indexOf",
       value: function indexOf(val, from) {
         if (from == null) {
           from = 0;
         }return this.all().indexOf(val, from);
       }
     }, {
-      key: 'lastIndexOf',
+      key: "lastIndexOf",
       value: function lastIndexOf(val, from) {
         if (from == null) {
           from = this.length() - 1;
@@ -1135,43 +1127,42 @@
         return this.all().lastIndexOf(val, from);
       }
     }, {
-      key: 'join',
+      key: "join",
       value: function join(separator) {
         if (separator == null) {
-          separator = ',';
+          separator = ",";
         }return this.all().join(separator);
       }
     }, {
-      key: 'first',
+      key: "first",
       value: function first() {
         return this.at(0);
       }
     }, {
-      key: 'last',
+      key: "last",
       value: function last() {
         return this.at(this.length() - 1);
       }
     }, {
-      key: 'indexed',
+      key: "indexed",
       value: function indexed() {
-        var _this16 = this;
+        var _this15 = this;
 
         if (this._indexed == null) {
           this._indexed = new IndexedDepArray();
-          autoSub(this.onChangeCells, function () {
-            var _Array$from9 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-                _Array$from10 = _slicedToArray(_Array$from9, 3),
-                index = _Array$from10[0],
-                removed = _Array$from10[1],
-                added = _Array$from10[2];
+          autoSub(this.onChangeCells, function (_ref10) {
+            var _ref11 = _slicedToArray(_ref10, 3),
+                index = _ref11[0],
+                removed = _ref11[1],
+                added = _ref11[2];
 
-            return _this16._indexed.realSpliceCells(index, removed.length, added);
+            return _this15._indexed.realSpliceCells(index, removed.length, added);
           });
         }
         return this._indexed;
       }
     }, {
-      key: 'concat',
+      key: "concat",
       value: function concat() {
         for (var _len5 = arguments.length, those = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
           those[_key5] = arguments[_key5];
@@ -1180,9 +1171,9 @@
         return _concat.apply(undefined, [this].concat(_toConsumableArray(Array.from(those))));
       }
     }, {
-      key: 'realSpliceCells',
+      key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
-        var _this17 = this;
+        var _this16 = this;
 
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
         var removedElems = snap(function () {
@@ -1196,67 +1187,41 @@
           });
         });
         return transaction(function () {
-          _this17.onChangeCells.pub([index, removed, additions]);
-          return _this17.onChange.pub([index, removedElems, addedElems]);
+          _this16.onChangeCells.pub([index, removed, additions]);
+          return _this16.onChange.pub([index, removedElems, addedElems]);
         });
       }
     }, {
-      key: 'realSplice',
+      key: "realSplice",
       value: function realSplice(index, count, additions) {
         return this.realSpliceCells(index, count, additions.map(_cell));
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(val, diff) {
-        var _this18 = this;
+        var _this17 = this;
 
-        var left = void 0;
-        if (diff == null) {
-          diff = this.diff;
-        }
+        var left = void 0,
+            splices = void 0;
         var old = snap(function () {
-          return Array.from(_this18._cells).map(function (x) {
+          return Array.from(_this17._cells).map(function (x) {
             return x.get();
           });
         });
         var fullSplice = [0, old.length, val];
-        var splices = diff != null ? (left = permToSplices(old.length, val, diff(old, val))) != null ? left : [fullSplice] : [fullSplice];
-        //console.log(old, val, splices, fullSplice, diff, @diff)
-        return function () {
-          var result = [];
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
+        if (diff == null) {
+          diff = this.diff;
+        }
+        left = permToSplices(old.length, val, diff(old, val));
+        splices = left != null ? left : [fullSplice];
+        return splices.map(function (_ref12) {
+          var _ref13 = _slicedToArray(_ref12, 3),
+              index = _ref13[0],
+              count = _ref13[1],
+              additions = _ref13[2];
 
-          try {
-            for (var _iterator6 = Array.from(splices)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var splice = _step6.value;
-
-              var _Array$from11 = Array.from(splice),
-                  _Array$from12 = _slicedToArray(_Array$from11, 3),
-                  index = _Array$from12[0],
-                  count = _Array$from12[1],
-                  additions = _Array$from12[2];
-
-              result.push(_this18.realSplice(index, count, additions));
-            }
-          } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
-              }
-            } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
-              }
-            }
-          }
-
-          return result;
-        }();
+          return _this17.realSplice(index, count, additions);
+        });
       }
     }]);
 
@@ -1273,16 +1238,16 @@
     }
 
     _createClass(SrcArray, [{
-      key: 'spliceArray',
+      key: "spliceArray",
       value: function spliceArray(index, count, additions) {
-        var _this20 = this;
+        var _this19 = this;
 
         return recorder.mutating(function () {
-          return _this20.realSplice(index, count, additions);
+          return _this19.realSplice(index, count, additions);
         });
       }
     }, {
-      key: 'splice',
+      key: "splice",
       value: function splice(index, count) {
         for (var _len6 = arguments.length, additions = Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
           additions[_key6 - 2] = arguments[_key6];
@@ -1291,12 +1256,12 @@
         return this.spliceArray(index, count, additions);
       }
     }, {
-      key: 'insert',
+      key: "insert",
       value: function insert(x, index) {
         return this.splice(index, 0, x);
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(x) {
         var i = (0, _underscore2.default)(this.raw()).indexOf(x);
         if (i >= 0) {
@@ -1304,94 +1269,90 @@
         }
       }
     }, {
-      key: 'removeAll',
+      key: "removeAll",
       value: function removeAll(x) {
-        var _this21 = this;
+        var _this20 = this;
 
         return transaction(function () {
           var i = (0, _underscore2.default)(snap(function () {
-            return _this21.all();
+            return _this20.all();
           })).indexOf(x);
-          return function () {
-            var result = [];
-            while (i >= 0) {
-              _this21.removeAt(i);
-              result.push(i = (0, _underscore2.default)(snap(function () {
-                return _this21.all();
-              })).indexOf(x));
-            }
-            return result;
-          }();
+          while (i >= 0) {
+            _this20.removeAt(i);
+            i = snap(function () {
+              return (0, _underscore2.default)(_this20.all().slice(i));
+            }).indexOf(x);
+          }
         });
       }
     }, {
-      key: 'removeAt',
+      key: "removeAt",
       value: function removeAt(index) {
-        var _this22 = this;
+        var _this21 = this;
 
         var val = snap(function () {
-          return _this22.at(index);
+          return _this21.at(index);
         });
         this.splice(index, 1);
         return val;
       }
     }, {
-      key: 'push',
+      key: "push",
       value: function push(x) {
-        var _this23 = this;
+        var _this22 = this;
 
         return this.splice(snap(function () {
-          return _this23.length();
+          return _this22.length();
         }), 0, x);
       }
     }, {
-      key: 'pop',
+      key: "pop",
       value: function pop() {
-        var _this24 = this;
+        var _this23 = this;
 
         return this.removeAt(snap(function () {
-          return _this24.length() - 1;
+          return _this23.length() - 1;
         }));
       }
     }, {
-      key: 'put',
+      key: "put",
       value: function put(i, x) {
         return this.splice(i, 1, x);
       }
     }, {
-      key: 'replace',
+      key: "replace",
       value: function replace(xs) {
-        var _this25 = this;
+        var _this24 = this;
 
         return this.spliceArray(0, snap(function () {
-          return _this25.length();
+          return _this24.length();
         }), xs);
       }
     }, {
-      key: 'unshift',
+      key: "unshift",
       value: function unshift(x) {
         return this.insert(x, 0);
       }
     }, {
-      key: 'shift',
+      key: "shift",
       value: function shift() {
         return this.removeAt(0);
       }
       // TODO: How is this different from replace? we should use one or the other.
 
     }, {
-      key: 'update',
+      key: "update",
       value: function update(xs) {
-        var _this26 = this;
+        var _this25 = this;
 
         return recorder.mutating(function () {
-          return _this26._update(xs);
+          return _this25._update(xs);
         });
       }
     }, {
-      key: 'move',
+      key: "move",
       value: function move(src, dest) {
-        var _this27 = this;
+        var _this26 = this;
 
         return transaction(function () {
           // moves element at src to index before dest
@@ -1400,64 +1361,64 @@
           }
 
           var len = snap(function () {
-            return _this27.length();
+            return _this26.length();
           });
 
           if (src < 0 || src > len - 1) {
-            throw 'Source ' + src + ' is outside of bounds of array of length ' + len;
+            throw "Source " + src + " is outside of bounds of array of length " + len;
           }
           if (dest < 0 || dest > len) {
-            throw 'Destination ' + dest + ' is outside of bounds of array of length ' + len;
+            throw "Destination " + dest + " is outside of bounds of array of length " + len;
           }
 
           var val = snap(function () {
-            return _this27.all()[src];
+            return _this26.all()[src];
           });
 
           if (src > dest) {
-            _this27.removeAt(src);
-            _this27.insert(val, dest);
+            _this26.removeAt(src);
+            _this26.insert(val, dest);
           } else {
-            _this27.insert(val, dest);
-            _this27.removeAt(src);
+            _this26.insert(val, dest);
+            _this26.removeAt(src);
           }
         });
       } // removeAt returns, but insert doesn't, so let's avoid inconsistency
 
     }, {
-      key: 'swap',
+      key: "swap",
       value: function swap(i1, i2) {
-        var _this28 = this;
+        var _this27 = this;
 
         return transaction(function () {
           var len = snap(function () {
-            return _this28.length();
+            return _this27.length();
           });
           if (i1 < 0 || i1 > len - 1) {
-            throw 'i1 ' + i1 + ' is outside of bounds of array of length ' + len;
+            throw "i1 " + i1 + " is outside of bounds of array of length " + len;
           }
           if (i2 < 0 || i2 > len - 1) {
-            throw 'i2 ' + i2 + ' is outside of bounds of array of length ' + len;
+            throw "i2 " + i2 + " is outside of bounds of array of length " + len;
           }
 
           var first = Math.min(i1, i2);
           var second = Math.max(i1, i2);
 
-          _this28.move(first, second);
-          return _this28.move(second, first);
+          _this27.move(first, second);
+          return _this27.move(second, first);
         });
       }
     }, {
-      key: 'reverse',
+      key: "reverse",
       value: function reverse() {
-        var _this29 = this;
+        var _this28 = this;
 
         // Javascript's Array.reverse both reverses the Array and returns its new value
         this.update(snap(function () {
-          return _this29.all().reverse();
+          return _this28.all().reverse();
         }));
         return snap(function () {
-          return _this29.all();
+          return _this28.all();
         });
       }
     }]);
@@ -1487,102 +1448,77 @@
         xs = [];
       }
 
-      var _this31 = _possibleConstructorReturn(this, (IndexedDepArray.__proto__ || Object.getPrototypeOf(IndexedDepArray)).call(this, xs, diff));
+      var _this30 = _possibleConstructorReturn(this, (IndexedDepArray.__proto__ || Object.getPrototypeOf(IndexedDepArray)).call(this, xs, diff));
 
-      _this31.is = Array.from(_this31._cells).map(function (x, i) {
+      _this30.is = Array.from(_this30._cells).map(function (x, i) {
         return _cell(i);
       });
-      _this31.onChangeCells = _this31._mkEv(function () {
-        return [0, [], _underscore2.default.zip(_this31._cells, _this31.is)];
+      _this30.onChangeCells = _this30._mkEv(function () {
+        return [0, [], _underscore2.default.zip(_this30._cells, _this30.is)];
       }); // [index, removed, added]
-      _this31.onChange = _this31._mkEv(function () {
-        return [0, [], _underscore2.default.zip(_this31.is, snap(function () {
-          return _this31.all();
+      _this30.onChange = _this30._mkEv(function () {
+        return [0, [], _underscore2.default.zip(_this30.is, snap(function () {
+          return _this30.all();
         }))];
       });
-      return _this31;
+      return _this30;
     }
     // TODO duplicate code with ObsArray
 
 
     _createClass(IndexedDepArray, [{
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
-        autoSub(this.onChangeCells, function () {
-          var _Array$from13 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from14 = _slicedToArray(_Array$from13, 3),
-              index = _Array$from14[0],
-              removed = _Array$from14[1],
-              added = _Array$from14[2];
+        autoSub(this.onChangeCells, function (_ref14) {
+          var _ref15 = _slicedToArray(_ref14, 3),
+              index = _ref15[0],
+              removed = _ref15[1],
+              added = _ref15[2];
 
-          var _iteratorNormalCompletion7 = true;
-          var _didIteratorError7 = false;
-          var _iteratorError7 = undefined;
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
 
           try {
-            for (var _iterator7 = Array.from(ys._cells.slice(index, index + removed.length))[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-              var cell = _step7.value;
+            for (var _iterator6 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var cell = _step6.value;
 
               cell.disconnect();
             }
           } catch (err) {
-            _didIteratorError7 = true;
-            _iteratorError7 = err;
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                _iterator7.return();
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
               }
             } finally {
-              if (_didIteratorError7) {
-                throw _iteratorError7;
+              if (_didIteratorError6) {
+                throw _iteratorError6;
               }
             }
           }
 
-          var newCells = function () {
-            var result = [];
-            var _iteratorNormalCompletion8 = true;
-            var _didIteratorError8 = false;
-            var _iteratorError8 = undefined;
+          var newCells = added.map(function (_ref16) {
+            var _ref17 = _slicedToArray(_ref16, 2),
+                item = _ref17[0],
+                icell = _ref17[1];
 
-            try {
-              for (var _iterator8 = Array.from(added)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-                var _step8$value = _slicedToArray(_step8.value, 2),
-                    item = _step8$value[0],
-                    icell = _step8$value[1];
-
-                result.push(cell = bind(function () {
-                  return f(item.get(), icell);
-                }));
-              }
-            } catch (err) {
-              _didIteratorError8 = true;
-              _iteratorError8 = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion8 && _iterator8.return) {
-                  _iterator8.return();
-                }
-              } finally {
-                if (_didIteratorError8) {
-                  throw _iteratorError8;
-                }
-              }
-            }
-
-            return result;
-          }();
+            return bind(function () {
+              return f(item.get(), icell);
+            });
+          });
           return ys.realSpliceCells(index, removed.length, newCells);
         });
         return ys;
       }
     }, {
-      key: 'realSpliceCells',
+      key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
         var _is,
-            _this32 = this;
+            _this31 = this;
 
         var i = void 0;
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
@@ -1597,15 +1533,12 @@
           i = iterable[offset];
           i.set(index + additions.length + offset);
         }
-        var newIs = function () {
-          var asc = void 0,
-              end = void 0;
-          var result = [];
-          for (i = 0, end = additions.length, asc = 0 <= end; asc ? i < end : i > end; asc ? i++ : i--) {
-            result.push(_cell(index + i));
-          }
-          return result;
-        }();
+        var newIs = [];
+        var end = additions.length;
+        var asc = 0 <= end;
+        for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
+          newIs.push(_cell(index + i));
+        }
         (_is = this.is).splice.apply(_is, [index, count].concat(_toConsumableArray(Array.from(newIs))));
 
         var addedElems = snap(function () {
@@ -1614,8 +1547,8 @@
           });
         });
         return transaction(function () {
-          _this32.onChangeCells.pub([index, removed, _underscore2.default.zip(additions, newIs)]);
-          return _this32.onChange.pub([index, removedElems, _underscore2.default.zip(addedElems, newIs)]);
+          _this31.onChangeCells.pub([index, removed, _underscore2.default.zip(additions, newIs)]);
+          return _this31.onChange.pub([index, removedElems, _underscore2.default.zip(addedElems, newIs)]);
         });
       }
     }]);
@@ -1629,20 +1562,19 @@
     function DepArray(f, diff) {
       _classCallCheck(this, DepArray);
 
-      var _this33 = _possibleConstructorReturn(this, (DepArray.__proto__ || Object.getPrototypeOf(DepArray)).call(this, [], diff));
+      var _this32 = _possibleConstructorReturn(this, (DepArray.__proto__ || Object.getPrototypeOf(DepArray)).call(this, [], diff));
 
-      _this33.f = f;
+      _this32.f = f;
       autoSub(bind(function () {
-        return Array.from(_this33.f());
-      }).onSet, function () {
-        var _Array$from15 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-            _Array$from16 = _slicedToArray(_Array$from15, 2),
-            old = _Array$from16[0],
-            val = _Array$from16[1];
+        return Array.from(_this32.f());
+      }).onSet, function (_ref18) {
+        var _ref19 = _slicedToArray(_ref18, 2),
+            old = _ref19[0],
+            val = _ref19[1];
 
-        return _this33._update(val);
+        return _this32._update(val);
       });
-      return _this33;
+      return _this32;
     }
 
     return DepArray;
@@ -1654,22 +1586,21 @@
     function IndexedArray(_cells) {
       _classCallCheck(this, IndexedArray);
 
-      var _this34 = _possibleConstructorReturn(this, (IndexedArray.__proto__ || Object.getPrototypeOf(IndexedArray)).call(this));
+      var _this33 = _possibleConstructorReturn(this, (IndexedArray.__proto__ || Object.getPrototypeOf(IndexedArray)).call(this));
 
-      _this34._cells = _cells;
-      return _this34;
+      _this33._cells = _cells;
+      return _this33;
     }
 
     _createClass(IndexedArray, [{
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
-        autoSub(this._cells.onChange, function () {
-          var _Array$from17 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from18 = _slicedToArray(_Array$from17, 3),
-              index = _Array$from18[0],
-              removed = _Array$from18[1],
-              added = _Array$from18[2];
+        autoSub(this._cells.onChange, function (_ref20) {
+          var _ref21 = _slicedToArray(_ref20, 3),
+              index = _ref21[0],
+              removed = _ref21[1],
+              added = _ref21[2];
 
           return ys.realSplice(index, removed.length, added.map(f));
         });
@@ -1681,50 +1612,24 @@
   }(DepArray);
 
   var _concat = function _concat() {
+    var ys = new MappedDepArray();
+
     for (var _len7 = arguments.length, xss = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
       xss[_key7] = arguments[_key7];
     }
 
-    var xs = void 0;
-    var ys = new MappedDepArray();
     var casted = xss.map(function (xs) {
-      return cast(xs, 'array');
+      return cast(xs, "array");
     });
-    var repLens = function () {
-      var result = [];
-      var _iteratorNormalCompletion9 = true;
-      var _didIteratorError9 = false;
-      var _iteratorError9 = undefined;
-
-      try {
-        for (var _iterator9 = Array.from(xss)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-          xs = _step9.value;
-          result.push(0);
-        }
-      } catch (err) {
-        _didIteratorError9 = true;
-        _iteratorError9 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion9 && _iterator9.return) {
-            _iterator9.return();
-          }
-        } finally {
-          if (_didIteratorError9) {
-            throw _iteratorError9;
-          }
-        }
-      }
-
-      return result;
-    }();
+    var repLens = xss.map(function () {
+      return 0;
+    });
     casted.forEach(function (xs, i) {
-      return autoSub(xs.onChange, function () {
-        var _Array$from19 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-            _Array$from20 = _slicedToArray(_Array$from19, 3),
-            index = _Array$from20[0],
-            removed = _Array$from20[1],
-            added = _Array$from20[2];
+      return autoSub(xs.onChange, function (_ref22) {
+        var _ref23 = _slicedToArray(_ref22, 3),
+            index = _ref23[0],
+            removed = _ref23[1],
+            added = _ref23[2];
 
         var xsOffset = sum(repLens.slice(0, i));
         repLens[i] += added.length - removed.length;
@@ -1755,23 +1660,23 @@
         _base = new Map();
       }
 
-      var _this35 = _possibleConstructorReturn(this, (ObsMap.__proto__ || Object.getPrototypeOf(ObsMap)).call(this));
+      var _this34 = _possibleConstructorReturn(this, (ObsMap.__proto__ || Object.getPrototypeOf(ObsMap)).call(this));
 
-      _this35._base = objToJSMap(_base);
-      _this35.onAdd = _this35._mkEv(function () {
-        return new Map(_this35._base);
+      _this34._base = objToJSMap(_base);
+      _this34.onAdd = _this34._mkEv(function () {
+        return new Map(_this34._base);
       }); // {key: new...}
-      _this35.onRemove = _this35._mkEv(function () {
+      _this34.onRemove = _this34._mkEv(function () {
         return new Map();
       }); // {key: old...}
-      _this35.onChange = _this35._mkEv(function () {
+      _this34.onChange = _this34._mkEv(function () {
         return new Map();
       }); // {key: [old, new]...}
-      return _this35;
+      return _this34;
     }
 
     _createClass(ObsMap, [{
-      key: 'get',
+      key: "get",
       value: function get(key) {
         this.subAll(function (result) {
           return result.has(key);
@@ -1779,7 +1684,7 @@
         return this._base.get(key);
       }
     }, {
-      key: 'has',
+      key: "has",
       value: function has(key) {
         recorder.sub(this.onAdd, function (additions) {
           return additions.has(key);
@@ -1790,29 +1695,29 @@
         return this._base.has(key);
       }
     }, {
-      key: 'all',
+      key: "all",
       value: function all() {
         this.subAll();
         return new Map(this._base);
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
-        var _this36 = this;
+        var _this35 = this;
 
         return new DepMap(function () {
-          return _this36.all();
+          return _this35.all();
         });
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
         recorder.sub(this.onRemove);
         recorder.sub(this.onAdd);
         return this._base.size;
       }
     }, {
-      key: 'realPut',
+      key: "realPut",
       value: function realPut(key, val) {
         if (this._base.has(key)) {
           var old = this._base.get(key);
@@ -1828,67 +1733,55 @@
         }
       }
     }, {
-      key: 'realRemove',
+      key: "realRemove",
       value: function realRemove(key) {
         var val = mapPop(this._base, key);
         this.onRemove.pub(new Map([[key, val]]));
         return val;
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(other) {
-        var _this37 = this;
+        var _this36 = this;
 
         var val = void 0;
         var otherMap = objToJSMap(other);
         var ret = new Map(this._base);
-        var removals = function () {
-          return _underscore2.default.chain(Array.from(_this37._base.keys())).difference(Array.from(otherMap.keys())).map(function (k) {
-            return [k, mapPop(_this37._base, k)];
-          }).value();
-        }();
+        var removals = _underscore2.default.chain(Array.from(this._base.keys())).difference(Array.from(otherMap.keys())).map(function (k) {
+          return [k, mapPop(_this36._base, k)];
+        }).value();
 
-        var additions = function () {
-          return _underscore2.default.chain(Array.from(otherMap.keys())).difference(Array.from(_this37._base.keys())).map(function (k) {
-            val = otherMap.get(k);
-            _this37._base.set(k, val);
-            return [k, val];
-          }).value();
-        }();
+        var additions = _underscore2.default.chain(Array.from(otherMap.keys())).difference(Array.from(this._base.keys())).map(function (k) {
+          val = otherMap.get(k);
+          _this36._base.set(k, val);
+          return [k, val];
+        }).value();
 
-        var changes = function () {
-          var k = void 0;
-          return _underscore2.default.chain(Array.from(otherMap)).filter(function () {
-            var _Array$from21 = Array.from(arguments.length <= 0 ? undefined : arguments[0]);
+        var changes = _underscore2.default.chain(Array.from(otherMap)).filter(function (_ref24) {
+          var _ref25 = _slicedToArray(_ref24, 2),
+              k = _ref25[0],
+              val = _ref25[1];
 
-            var _Array$from22 = _slicedToArray(_Array$from21, 2);
+          return _this36._base.has(k) && _this36._base.get(k) !== val;
+        }).map(function (_ref26) {
+          var _ref27 = _slicedToArray(_ref26, 2),
+              k = _ref27[0],
+              val = _ref27[1];
 
-            k = _Array$from22[0];
-            val = _Array$from22[1];
-            return _this37._base.has(k) && _this37._base.get(k) !== val;
-          }).map(function () {
-            var _Array$from23 = Array.from(arguments.length <= 0 ? undefined : arguments[0]);
-
-            var _Array$from24 = _slicedToArray(_Array$from23, 2);
-
-            k = _Array$from24[0];
-            val = _Array$from24[1];
-
-            var old = _this37._base.get(k);
-            _this37._base.set(k, val);
-            return [k, [old, val]];
-          }).value();
-        }();
+          var old = _this36._base.get(k);
+          _this36._base.set(k, val);
+          return [k, [old, val]];
+        }).value();
 
         transaction(function () {
           if (removals.length) {
-            _this37.onRemove.pub(new Map(removals));
+            _this36.onRemove.pub(new Map(removals));
           }
           if (additions.length) {
-            _this37.onAdd.pub(new Map(additions));
+            _this36.onAdd.pub(new Map(additions));
           }
           if (changes.length) {
-            return _this37.onChange.pub(new Map(changes));
+            return _this36.onChange.pub(new Map(changes));
           }
         });
 
@@ -1909,59 +1802,59 @@
     }
 
     _createClass(SrcMap, [{
-      key: 'put',
+      key: "put",
       value: function put(key, val) {
-        var _this39 = this;
+        var _this38 = this;
 
         return recorder.mutating(function () {
-          return _this39.realPut(key, val);
+          return _this38.realPut(key, val);
         });
       }
     }, {
-      key: 'set',
+      key: "set",
       value: function set(key, val) {
         return this.put(key, val);
       }
     }, {
-      key: 'delete',
+      key: "delete",
       value: function _delete(key) {
-        var _this40 = this;
+        var _this39 = this;
 
         return recorder.mutating(function () {
           var val = undefined;
-          if (_this40._base.has(key)) {
-            val = _this40.realRemove(key);
-            _this40.onRemove.pub(new Map([[key, val]]));
+          if (_this39._base.has(key)) {
+            val = _this39.realRemove(key);
+            _this39.onRemove.pub(new Map([[key, val]]));
           }
           return val;
         });
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(key) {
         return this.delete(key);
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
-        var _this41 = this;
+        var _this40 = this;
 
         return recorder.mutating(function () {
-          var removals = new Map(_this41._base);
-          _this41._base.clear();
+          var removals = new Map(_this40._base);
+          _this40._base.clear();
           if (removals.size) {
-            _this41.onRemove.pub(removals);
+            _this40.onRemove.pub(removals);
           }
           return removals;
         });
       }
     }, {
-      key: 'update',
+      key: "update",
       value: function update(x) {
-        var _this42 = this;
+        var _this41 = this;
 
         return recorder.mutating(function () {
-          return _this42._update(x);
+          return _this41._update(x);
         });
       }
     }]);
@@ -1975,19 +1868,18 @@
     function DepMap(f) {
       _classCallCheck(this, DepMap);
 
-      var _this43 = _possibleConstructorReturn(this, (DepMap.__proto__ || Object.getPrototypeOf(DepMap)).call(this));
+      var _this42 = _possibleConstructorReturn(this, (DepMap.__proto__ || Object.getPrototypeOf(DepMap)).call(this));
 
-      _this43.f = f;
-      var c = bind(_this43.f);
-      autoSub(c.onSet, function () {
-        var _Array$from25 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-            _Array$from26 = _slicedToArray(_Array$from25, 2),
-            old = _Array$from26[0],
-            val = _Array$from26[1];
+      _this42.f = f;
+      var c = bind(_this42.f);
+      autoSub(c.onSet, function (_ref28) {
+        var _ref29 = _slicedToArray(_ref28, 2),
+            old = _ref29[0],
+            val = _ref29[1];
 
-        return _this43._update(val);
+        return _this42._update(val);
       });
-      return _this43;
+      return _this42;
     }
 
     return DepMap;
@@ -2030,100 +1922,98 @@
         _base = new Set();
       }
 
-      var _this44 = _possibleConstructorReturn(this, (ObsSet.__proto__ || Object.getPrototypeOf(ObsSet)).call(this));
+      var _this43 = _possibleConstructorReturn(this, (ObsSet.__proto__ || Object.getPrototypeOf(ObsSet)).call(this));
 
-      _this44._base = objToJSSet(_base);
-      _this44.onChange = _this44._mkEv(function () {
-        return [_this44._base, new Set()];
+      _this43._base = objToJSSet(_base);
+      _this43.onChange = _this43._mkEv(function () {
+        return [_this43._base, new Set()];
       }); // additions, removals
-      return _this44;
+      return _this43;
     }
 
     _createClass(ObsSet, [{
-      key: 'has',
+      key: "has",
       value: function has(key) {
-        this.subAll(function () {
-          var _Array$from27 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from28 = _slicedToArray(_Array$from27, 2),
-              additions = _Array$from28[0],
-              removals = _Array$from28[1];
+        this.subAll(function (_ref30) {
+          var _ref31 = _slicedToArray(_ref30, 2),
+              additions = _ref31[0],
+              removals = _ref31[1];
 
           return additions.has(key) || removals.has(key);
         });
         return this._base.has(key);
       }
     }, {
-      key: 'all',
+      key: "all",
       value: function all() {
         this.subAll();
         return new Set(this._base);
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
-        var _this45 = this;
+        var _this44 = this;
 
         return new DepSet(function () {
-          return _this45.all();
+          return _this44.all();
         });
       }
     }, {
-      key: 'values',
+      key: "values",
       value: function values() {
         return this.all();
       }
     }, {
-      key: 'entries',
+      key: "entries",
       value: function entries() {
         return this.all();
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
-        this.subAll(function () {
-          var _Array$from29 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-              _Array$from30 = _slicedToArray(_Array$from29, 2),
-              additions = _Array$from30[0],
-              removals = _Array$from30[1];
+        this.subAll(function (_ref32) {
+          var _ref33 = _slicedToArray(_ref32, 2),
+              additions = _ref33[0],
+              removals = _ref33[1];
 
           return additions.size !== removals.size;
         });
         return this._base.size;
       }
     }, {
-      key: 'union',
+      key: "union",
       value: function union(other) {
+        var _this45 = this;
+
+        return new DepSet(function () {
+          return _union(_this45.all(), _castOther(other));
+        });
+      }
+    }, {
+      key: "intersection",
+      value: function intersection(other) {
         var _this46 = this;
 
         return new DepSet(function () {
-          return _union(_this46.all(), _castOther(other));
+          return _intersection(_this46.all(), _castOther(other));
         });
       }
     }, {
-      key: 'intersection',
-      value: function intersection(other) {
+      key: "difference",
+      value: function difference(other) {
         var _this47 = this;
 
         return new DepSet(function () {
-          return _intersection(_this47.all(), _castOther(other));
+          return _difference(_this47.all(), _castOther(other));
         });
       }
     }, {
-      key: 'difference',
-      value: function difference(other) {
+      key: "symmetricDifference",
+      value: function symmetricDifference(other) {
         var _this48 = this;
 
         return new DepSet(function () {
-          return _difference(_this48.all(), _castOther(other));
-        });
-      }
-    }, {
-      key: 'symmetricDifference',
-      value: function symmetricDifference(other) {
-        var _this49 = this;
-
-        return new DepSet(function () {
-          var me = _this49.all();
+          var me = _this48.all();
           other = _castOther(other);
           return new Set(Array.from(_union(me, other)).filter(function (item) {
             return !me.has(item) || !other.has(item);
@@ -2131,12 +2021,12 @@
         });
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(y) {
-        var _this50 = this;
+        var _this49 = this;
 
         return transaction(function () {
-          var old_ = new Set(_this50._base);
+          var old_ = new Set(_this49._base);
           var new_ = objToJSSet(y);
 
           var additions = new Set();
@@ -2155,13 +2045,13 @@
           });
 
           old_.forEach(function (item) {
-            return _this50._base.delete(item);
+            return _this49._base.delete(item);
           });
           new_.forEach(function (item) {
-            return _this50._base.add(item);
+            return _this49._base.add(item);
           });
 
-          _this50.onChange.pub([additions, removals]);
+          _this49.onChange.pub([additions, removals]);
           return old_;
         });
       }
@@ -2180,62 +2070,62 @@
     }
 
     _createClass(SrcSet, [{
-      key: 'add',
+      key: "add",
       value: function add(item) {
-        var _this52 = this;
+        var _this51 = this;
 
         return recorder.mutating(function () {
-          if (!_this52._base.has(item)) {
-            _this52._base.add(item);
-            _this52.onChange.pub([new Set([item]), new Set()]);
+          if (!_this51._base.has(item)) {
+            _this51._base.add(item);
+            _this51.onChange.pub([new Set([item]), new Set()]);
           }
           return item;
         });
       }
     }, {
-      key: 'put',
+      key: "put",
       value: function put(item) {
         return this.add(item);
       }
     }, {
-      key: 'delete',
+      key: "delete",
       value: function _delete(item) {
-        var _this53 = this;
+        var _this52 = this;
 
         return recorder.mutating(function () {
-          if (_this53._base.has(item)) {
-            _this53._base.delete(item);
-            _this53.onChange.pub([new Set(), new Set([item])]);
+          if (_this52._base.has(item)) {
+            _this52._base.delete(item);
+            _this52.onChange.pub([new Set(), new Set([item])]);
           }
           return item;
         });
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(item) {
         return this.delete(item);
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
-        var _this54 = this;
+        var _this53 = this;
 
         return recorder.mutating(function () {
-          var removals = new Set(_this54._base);
-          if (_this54._base.size) {
-            _this54._base.clear();
-            _this54.onChange.pub([new Set(), removals]);
+          var removals = new Set(_this53._base);
+          if (_this53._base.size) {
+            _this53._base.clear();
+            _this53.onChange.pub([new Set(), removals]);
           }
           return removals;
         });
       }
     }, {
-      key: 'update',
+      key: "update",
       value: function update(y) {
-        var _this55 = this;
+        var _this54 = this;
 
         return recorder.mutating(function () {
-          return _this55._update(y);
+          return _this54._update(y);
         });
       }
     }]);
@@ -2249,62 +2139,69 @@
     function DepSet(f) {
       _classCallCheck(this, DepSet);
 
-      var _this56 = _possibleConstructorReturn(this, (DepSet.__proto__ || Object.getPrototypeOf(DepSet)).call(this));
+      var _this55 = _possibleConstructorReturn(this, (DepSet.__proto__ || Object.getPrototypeOf(DepSet)).call(this));
 
-      _this56.f = f;
-      var c = bind(_this56.f);
-      autoSub(c.onSet, function () {
-        var _Array$from31 = Array.from(arguments.length <= 0 ? undefined : arguments[0]),
-            _Array$from32 = _slicedToArray(_Array$from31, 2),
-            old = _Array$from32[0],
-            val = _Array$from32[1];
+      _this55.f = f;
+      var c = bind(_this55.f);
+      autoSub(c.onSet, function (_ref34) {
+        var _ref35 = _slicedToArray(_ref34, 2),
+            old = _ref35[0],
+            val = _ref35[1];
 
-        return _this56._update(val);
+        return _this55._update(val);
       });
-      return _this56;
+      return _this55;
     }
 
     return DepSet;
   }(ObsSet);
 
   var liftSpec = exports.liftSpec = function liftSpec(obj) {
-    return _underscore2.default.object(function () {
-      var result = [];
+    var result = [];
+    var val = void 0,
+        type = void 0;
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
 
-      var _iteratorNormalCompletion10 = true;
-      var _didIteratorError10 = false;
-      var _iteratorError10 = undefined;
+    try {
+      for (var _iterator7 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var name = _step7.value;
 
-      try {
-        for (var _iterator10 = Array.from(Object.getOwnPropertyNames(obj))[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-          var name = _step10.value;
-
-          var val = obj[name];
-          if (val != null && [ObsMap, ObsCell, ObsArray, ObsSet].some(function (cls) {
-            return val instanceof cls;
-          })) {
-            continue;
-          }
-          var _type = _underscore2.default.isFunction(val) ? null : _underscore2.default.isArray(val) ? 'array' : val instanceof Set ? 'set' : val instanceof Map ? 'map' : 'cell';
-          result.push([name, { type: _type, val: val }]);
+        val = obj[name];
+        if (val != null && [ObsMap, ObsCell, ObsArray, ObsSet].some(function (cls) {
+          return val instanceof cls;
+        })) {
+          continue;
+        } else if (_underscore2.default.isFunction(val)) {
+          type = null;
+        } else if (_underscore2.default.isArray(val)) {
+          type = "array";
+        } else if (val instanceof Set) {
+          type = "set";
+        } else if (val instanceof Map) {
+          type = "map";
+        } else {
+          type = "cell";
         }
-      } catch (err) {
-        _didIteratorError10 = true;
-        _iteratorError10 = err;
+        result.push([name, { type: type, val: val }]);
+      }
+    } catch (err) {
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
+        }
       } finally {
-        try {
-          if (!_iteratorNormalCompletion10 && _iterator10.return) {
-            _iterator10.return();
-          }
-        } finally {
-          if (_didIteratorError10) {
-            throw _iteratorError10;
-          }
+        if (_didIteratorError7) {
+          throw _iteratorError7;
         }
       }
+    }
 
-      return result;
-    }());
+    return _underscore2.default.object(result);
   };
 
   var lift = exports.lift = function lift(x, fieldspec) {
@@ -2312,8 +2209,8 @@
       fieldspec = liftSpec(x);
     }
 
-    return _underscore2.default.mapObject(fieldspec, function (_ref2, name) {
-      var type = _ref2.type;
+    return _underscore2.default.mapObject(fieldspec, function (_ref36, name) {
+      var type = _ref36.type;
 
       if (!(x[name] instanceof ObsBase) && type in types) {
         return rxTypes[type](x[name]);
@@ -2340,7 +2237,7 @@
     if (_underscore2.default.isArray(obj)) {
       var arr = _array(_underscore2.default.clone(obj));
       Object.defineProperties(obj, _underscore2.default.object(Object.getOwnPropertyNames(SrcArray.prototype).concat(Object.getOwnPropertyNames(ObsArray.prototype)).concat(Object.getOwnPropertyNames(ObsBase.prototype)).filter(function (methName) {
-        return methName !== 'length';
+        return methName !== "length";
       }).map(function (methName) {
         var meth = obj[methName];
         var newMeth = function newMeth() {
@@ -2376,36 +2273,40 @@
           result.push(function (name, spec) {
             var desc = null;
             switch (spec.type) {
-              case 'cell':
-                var obs = _cell(spec.val != null ? spec.val : null);
-                desc = {
-                  configurable: true,
-                  enumerable: true,
-                  get: function get() {
-                    return obs.get();
-                  },
-                  set: function set(x) {
-                    return obs.set(x);
-                  }
-                };
-                break;
-              case 'array':
-                var view = reactify(spec.val != null ? spec.val : []);
-                desc = {
-                  configurable: true,
-                  enumerable: true,
-                  get: function get() {
-                    view.all();
-                    return view;
-                  },
-                  set: function set(x) {
-                    view.splice.apply(view, [0, view.length].concat(_toConsumableArray(Array.from(x))));
-                    return view;
-                  }
-                };
-                break;
+              case "cell":
+                {
+                  var obs = _cell(spec.val != null ? spec.val : null);
+                  desc = {
+                    configurable: true,
+                    enumerable: true,
+                    get: function get() {
+                      return obs.get();
+                    },
+                    set: function set(x) {
+                      return obs.set(x);
+                    }
+                  };
+                  break;
+                }
+              case "array":
+                {
+                  var view = reactify(spec.val != null ? spec.val : []);
+                  desc = {
+                    configurable: true,
+                    enumerable: true,
+                    get: function get() {
+                      view.all();
+                      return view;
+                    },
+                    set: function set(x) {
+                      view.splice.apply(view, [0, view.length].concat(_toConsumableArray(Array.from(x))));
+                      return view;
+                    }
+                  };
+                  break;
+                }
               default:
-                throw new Error('Unknown observable type: ' + type);
+                throw new Error("Unknown observable type: " + spec.type);
             }
             return [name, desc];
           }(name, spec));
@@ -2418,32 +2319,32 @@
   var autoReactify = exports.autoReactify = function autoReactify(obj) {
     var result = [];
 
-    var _iteratorNormalCompletion11 = true;
-    var _didIteratorError11 = false;
-    var _iteratorError11 = undefined;
+    var _iteratorNormalCompletion8 = true;
+    var _didIteratorError8 = false;
+    var _iteratorError8 = undefined;
 
     try {
-      for (var _iterator11 = Array.from(Object.getOwnPropertyNames(obj))[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
-        var name = _step11.value;
+      for (var _iterator8 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+        var name = _step8.value;
 
         var val = obj[name];
         if (val instanceof ObsBase) {
           continue;
         }
-        var _type2 = _underscore2.default.isFunction(val) ? null : _underscore2.default.isArray(val) ? 'array' : 'cell';
-        result.push([name, { type: _type2, val: val }]);
+        var type = _underscore2.default.isFunction(val) ? null : _underscore2.default.isArray(val) ? "array" : "cell";
+        result.push([name, { type: type, val: val }]);
       }
     } catch (err) {
-      _didIteratorError11 = true;
-      _iteratorError11 = err;
+      _didIteratorError8 = true;
+      _iteratorError8 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion11 && _iterator11.return) {
-          _iterator11.return();
+        if (!_iteratorNormalCompletion8 && _iterator8.return) {
+          _iterator8.return();
         }
       } finally {
-        if (_didIteratorError11) {
-          throw _iteratorError11;
+        if (_didIteratorError8) {
+          throw _iteratorError8;
         }
       }
     }
@@ -2486,7 +2387,7 @@
         return value.all();
       };
     } else {
-      throw new Error('Cannot cast ' + value.constructor.name + ' to array!');
+      throw new Error("Cannot cast " + value.constructor.name + " to array!");
     }
 
     return new DepArray(f, diff);
@@ -2532,19 +2433,19 @@
 
   var cast = exports.cast = function cast(value, type) {
     if (type == null) {
-      type = 'cell';
+      type = "cell";
     }
     if ([ObsCell, ObsArray, ObsMap, ObsSet].includes(type)) {
       var realType = null;
       switch (type) {
         case ObsCell:
-          realType = 'cell';break;
+          realType = "cell";break;
         case ObsArray:
-          realType = 'array';break;
+          realType = "array";break;
         case ObsMap:
-          realType = 'map';break;
+          realType = "map";break;
         case ObsSet:
-          realType = 'set';break;
+          realType = "set";break;
       }
       type = realType;
     }
@@ -2618,51 +2519,22 @@
   var basicDiff = exports.basicDiff = function basicDiff(key) {
     if (key == null) {
       key = smartUidify;
-    }return function (oldXs, newXs) {
-      var x = void 0;
-      var oldKeys = mkMap(function () {
-        var result = [];
-        for (var i = 0; i < oldXs.length; i++) {
-          x = oldXs[i];
-          result.push([key(x), i]);
-        }
-        return result;
-      }());
-      return function () {
-        var result1 = [];
-        var _iteratorNormalCompletion12 = true;
-        var _didIteratorError12 = false;
-        var _iteratorError12 = undefined;
-
-        try {
-          for (var _iterator12 = Array.from(newXs)[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
-            x = _step12.value;
-            var left;
-            result1.push((left = oldKeys[key(x)]) != null ? left : -1);
-          }
-        } catch (err) {
-          _didIteratorError12 = true;
-          _iteratorError12 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion12 && _iterator12.return) {
-              _iterator12.return();
-            }
-          } finally {
-            if (_didIteratorError12) {
-              throw _iteratorError12;
-            }
-          }
-        }
-
-        return result1;
-      }();
+    }
+    return function (oldXs, newXs) {
+      var oldKeys = mkMap(oldXs.map(function (x, i) {
+        return [key(x), i];
+      }));
+      var left = void 0;
+      return newXs.map(function (x) {
+        left = oldKeys[key(x)];
+        return left != null ? left : -1;
+      });
     };
   };
 
   // This is invasive; WeakMaps can't come soon enough....
   var uidify = exports.uidify = function uidify(x) {
-    return x.__rxUid != null ? x.__rxUid : Object.defineProperty(x, '__rxUid', {
+    return x.__rxUid != null ? x.__rxUid : Object.defineProperty(x, "__rxUid", {
       enumerable: false,
       value: mkuid()
     }).__rxUid;
@@ -2686,47 +2558,19 @@
     if (!newXs.length) {
       return null; // just do a full splice if we're emptying the array
     }
-    var refs = function () {
-      var result = [];
-      var _iteratorNormalCompletion13 = true;
-      var _didIteratorError13 = false;
-      var _iteratorError13 = undefined;
-
-      try {
-        for (var _iterator13 = Array.from(perm)[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
-          i = _step13.value;
-          if (i >= 0) {
-            result.push(i);
-          }
-        }
-      } catch (err) {
-        _didIteratorError13 = true;
-        _iteratorError13 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion13 && _iterator13.return) {
-            _iterator13.return();
-          }
-        } finally {
-          if (_didIteratorError13) {
-            throw _iteratorError13;
-          }
-        }
-      }
-
-      return result;
-    }();
-    if (_underscore2.default.some(function () {
-      var asc = void 0,
-          end = void 0;
-      var result1 = [];
-      for (i = 0, end = refs.length - 1, asc = 0 <= end; asc ? i < end : i > end; asc ? i++ : i--) {
-        result1.push(refs[i + 1] - refs[i] <= 0);
-      }
-      return result1;
-    }())) {
+    var refs = perm.filter(function (i) {
+      return i >= 0;
+    });
+    var end = refs.length - 1;
+    var asc = 0 <= end;
+    var giveUp = [];
+    for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
+      giveUp.push(refs[i + 1] - refs[i] <= 0);
+    }
+    if (giveUp.some(_underscore2.default.identity)) {
       return null;
     }
+
     var splices = [];
     var last = -1;
     i = 0;
@@ -2762,3 +2606,4 @@
   };
 });
 
+//# sourceMappingURL=main.js.map
