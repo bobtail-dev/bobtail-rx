@@ -12,7 +12,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "npm run clean && npm run babel && npm run minify",
-    "babel": "babel src/main.js > dist/main.js",
+    "babel": "babel src/main.js --out-file dist/main.js --source-maps",
     "clean": "rm -rf dist && mkdir dist",
     "minify": "uglifyjs -mc --source-map --screw-ie8 -o dist/main.min.js dist/main.js",
     "typescript": "",
