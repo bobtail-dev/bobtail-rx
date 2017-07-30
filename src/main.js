@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import _ from "underscore";
 
 let nextUid = 0;
 let mkuid = () => nextUid += 1;
@@ -225,7 +225,9 @@ class Recorder {
   }
 
   fireMutationWarning() {
-    console.warn('Mutation to observable detected during a bind context');
+    /*eslint-disable*/
+    console.warn("Mutation to observable detected during a bind context");
+    /*eslint-enable*/
     return this.onMutationWarning.pub(null);
   }
   mutating(f) {
@@ -247,7 +249,7 @@ class Recorder {
   }
 }
 
-export let types = {'cell': 'cell', 'array': 'array', 'map': 'map', 'set': 'set'};
+export let types = {"cell": "cell", "array": "array", "map": "map", "set": "set"};
 
 export let _recorder = new Recorder();
 let recorder = _recorder;
@@ -368,13 +370,14 @@ export class ObsCell extends ObsBase {
 
 export class SrcCell extends ObsCell {
   set(x) {
-    return recorder.mutating(() => { if (this._base !== x) {
-      let old = this._base;
-      this._base = x;
-      this.onSet.pub([old, x]);
-      return old;
-    }
-   });
+    return recorder.mutating(() => {
+      if (this._base !== x) {
+        let old = this._base;
+        this._base = x;
+        this.onSet.pub([old, x]);
+        return old;
+      }
+    });
   }
 }
 
@@ -418,7 +421,7 @@ export class DepCell extends ObsCell {
           if (!this.refreshing) {
             let res;
             this.disconnect();
-            if (recorded) { throw new Error('this refresh has already recorded its dependencies'); }
+            if (recorded) { throw new Error("this refresh has already recorded its dependencies"); }
             this.refreshing = true;
             recorded = true;
             try { res = recorder.record(this, () => f.call(env)); }
@@ -504,11 +507,10 @@ export class ObsArray extends ObsBase {
   map(f) {
     let ys = new MappedDepArray();
     autoSub(this.onChangeCells, ([index, removed, added]) => {
-      let cell;
       for (let cell of ys._cells.slice(index, index + removed.length)) {
         cell.disconnect();
       }
-      let newCells = added.map(item => cell = bind(() => f(item.get())));
+      let newCells = added.map(item => bind(() => f(item.get())));
       return ys.realSpliceCells(index, removed.length, newCells);
     });
     return ys;
@@ -525,7 +527,7 @@ export class ObsArray extends ObsBase {
     if (from == null) { from = this.length() - 1; }
     return this.all().lastIndexOf(val, from);
   }
-  join(separator) {  if (separator == null) { separator = ','; } return this.all().join(separator); }
+  join(separator) {  if (separator == null) { separator = ","; } return this.all().join(separator); }
   first() { return this.at(0); }
   last() { return this.at(this.length() - 1); }
   indexed() {
@@ -715,7 +717,7 @@ export class IndexedArray extends DepArray {
 
 export let concat = function(...xss) {
   let ys = new MappedDepArray();
-  let casted = xss.map(xs => cast(xs, 'array'));
+  let casted = xss.map(xs => cast(xs, "array"));
   let repLens = xss.map(() => 0);
   casted.forEach((xs, i) =>
     autoSub(xs.onChange, function([index, removed, added]) {
@@ -974,13 +976,13 @@ export let liftSpec = obj => {
     } else if (_.isFunction(val)) {
       type = null;
     } else if (_.isArray(val)) {
-      type = 'array';
+      type = "array";
     } else if (val instanceof Set) {
-      type = 'set';
+      type = "set";
     } else if (val instanceof Map) {
-      type = 'map';
+      type = "map";
     } else {
-      type = 'cell';
+      type = "cell";
     }
     result.push([name, {type, val}]);
   }
@@ -1011,7 +1013,7 @@ export let reactify = function(obj, fieldspec) {
       Object.getOwnPropertyNames(SrcArray.prototype)
         .concat(Object.getOwnPropertyNames(ObsArray.prototype))
         .concat(Object.getOwnPropertyNames(ObsBase.prototype))
-        .filter((methName) => methName !== 'length').map((methName) => {
+        .filter((methName) => methName !== "length").map((methName) => {
           let meth = obj[methName];
           let newMeth = function(...args) {
             let res;
@@ -1039,31 +1041,33 @@ export let reactify = function(obj, fieldspec) {
         result.push((function(name, spec) {
           let desc = null;
           switch (spec.type) {
-            case 'cell':
-              let obs = cell(spec.val != null ? spec.val : null);
-              desc = {
-                configurable: true,
-                enumerable: true,
-                get() { return obs.get(); },
-                set(x) { return obs.set(x); }
-              };
-              break;
-            case 'array':
-              let view = reactify(spec.val != null ? spec.val : []);
-              desc = {
-                configurable: true,
-                enumerable: true,
-                get() {
-                  view.all();
-                  return view;
-                },
-                set(x) {
-                  view.splice(0, view.length, ...Array.from(x));
-                  return view;
-                }
-              };
-              break;
-            default: throw new Error(`Unknown observable type: ${type}`);
+          case "cell": {
+            let obs = cell(spec.val != null ? spec.val : null);
+            desc = {
+              configurable: true,
+              enumerable: true,
+              get() { return obs.get(); },
+              set(x) { return obs.set(x); }
+            };
+            break;
+          }
+          case "array": {
+            let view = reactify(spec.val != null ? spec.val : []);
+            desc = {
+              configurable: true,
+              enumerable: true,
+              get() {
+                view.all();
+                return view;
+              },
+              set(x) {
+                view.splice(0, view.length, ...Array.from(x));
+                return view;
+              }
+            };
+            break;
+          }
+          default: throw new Error(`Unknown observable type: ${spec.type}`);
           }
           return [name, desc];
         })(name, spec));
@@ -1084,8 +1088,8 @@ export let autoReactify = obj => {
     }
     let type =
       _.isFunction(val) ? null
-        : _.isArray(val) ? 'array'
-        : 'cell';
+        : _.isArray(val) ? "array"
+          : "cell";
     result.push([name, {type, val}]);
   }
 
@@ -1128,14 +1132,14 @@ set.from = function(value) {
 let rxTypes = {cell, array, map, set};
 
 export let cast = function(value, type) {
-  if (type == null) { type = 'cell'; }
+  if (type == null) { type = "cell"; }
   if ([ObsCell, ObsArray, ObsMap, ObsSet].includes(type)) {
     let realType = null;
     switch (type) {
-      case ObsCell: realType = 'cell'; break;
-      case ObsArray: realType = 'array'; break;
-      case ObsMap: realType = 'map'; break;
-      case ObsSet: realType = 'set'; break;
+    case ObsCell: realType = "cell"; break;
+    case ObsArray: realType = "array"; break;
+    case ObsMap: realType = "map"; break;
+    case ObsSet: realType = "set"; break;
     }
     type = realType;
   }
@@ -1191,7 +1195,7 @@ export let basicDiff = function(key) {
 // This is invasive; WeakMaps can't come soon enough....
 export let uidify = x =>
   x.__rxUid != null ? x.__rxUid : (
-    Object.defineProperty(x, '__rxUid', {
+    Object.defineProperty(x, "__rxUid", {
       enumerable: false,
       value: mkuid()
     })

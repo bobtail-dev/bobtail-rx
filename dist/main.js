@@ -1,8 +1,8 @@
 (function (global, factory) {
   if (typeof define === "function" && define.amd) {
-    define('bobtail-rx', ['exports', 'underscore'], factory);
+    define("bobtail-rx", ["exports", "underscore"], factory);
   } else if (typeof exports !== "undefined") {
-    factory(exports, require('underscore'));
+    factory(exports, require("underscore"));
   } else {
     var mod = {
       exports: {}
@@ -11,7 +11,7 @@
     global.rx = mod.exports;
   }
 })(this, function (exports, _underscore) {
-  'use strict';
+  "use strict";
 
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -145,7 +145,7 @@
 
   var popKey = function popKey(x, k) {
     if (!(k in x)) {
-      throw new Error('object has no key ' + k);
+      throw new Error("object has no key " + k);
     }
     var v = x[k];
     delete x[k];
@@ -249,7 +249,7 @@
 
 
     _createClass(DepMgr, [{
-      key: 'transaction',
+      key: "transaction",
       value: function transaction(f) {
         var res = void 0;
         this.buffering += 1;
@@ -312,7 +312,7 @@
     }
 
     _createClass(Ev, [{
-      key: 'sub',
+      key: "sub",
       value: function sub(listener) {
         var uid = mkuid();
         if (this.init != null) {
@@ -324,7 +324,7 @@
       // callable only by the src
 
     }, {
-      key: 'pub',
+      key: "pub",
       value: function pub(data) {
         if (depMgr.buffering) {
           depMgr.buffer.push([this, data]);
@@ -337,14 +337,14 @@
         }
       }
     }, {
-      key: 'unsub',
+      key: "unsub",
       value: function unsub(uid) {
         return popKey(this.subs, uid);
       }
       // listener is subscribed only for the duration of the context
 
     }, {
-      key: 'scoped',
+      key: "scoped",
       value: function scoped(listener, context) {
         var uid = this.sub(listener);
         try {
@@ -422,7 +422,7 @@
 
 
     _createClass(Recorder, [{
-      key: 'record',
+      key: "record",
       value: function record(dep, f) {
         if (this.stack.length > 0 && !this.isMutating) {
           (0, _underscore2.default)(this.stack).last().addNestedBind(dep);
@@ -443,7 +443,7 @@
         }
       }
     }, {
-      key: 'sub',
+      key: "sub",
       value: function sub(event, condFn) {
         if (condFn == null) {
           condFn = function condFn() {
@@ -466,14 +466,14 @@
         }
       }
     }, {
-      key: 'addCleanup',
+      key: "addCleanup",
       value: function addCleanup(cleanup) {
         if (this.stack.length > 0) {
           return (0, _underscore2.default)(this.stack).last().addCleanup(cleanup);
         }
       }
     }, {
-      key: 'hideMutationWarnings',
+      key: "hideMutationWarnings",
       value: function hideMutationWarnings(f) {
         var wasHiding = this.hidingMutationWarnings;
         this.hidingMutationWarnings = true;
@@ -484,13 +484,15 @@
         }
       }
     }, {
-      key: 'fireMutationWarning',
+      key: "fireMutationWarning",
       value: function fireMutationWarning() {
-        console.warn('Mutation to observable detected during a bind context');
+        /*eslint-disable*/
+        console.warn("Mutation to observable detected during a bind context");
+        /*eslint-enable*/
         return this.onMutationWarning.pub(null);
       }
     }, {
-      key: 'mutating',
+      key: "mutating",
       value: function mutating(f) {
         if (this.stack.length > 0 && !this.hidingMutationWarnings) {
           this.fireMutationWarning();
@@ -504,7 +506,7 @@
         }
       }
     }, {
-      key: 'ignoring',
+      key: "ignoring",
       value: function ignoring(f) {
         var wasIgnoring = this.isIgnoring;
         this.isIgnoring = true;
@@ -519,7 +521,7 @@
     return Recorder;
   }();
 
-  var types = exports.types = { 'cell': 'cell', 'array': 'array', 'map': 'map', 'set': 'set' };
+  var types = exports.types = { "cell": "cell", "array": "array", "map": "map", "set": "set" };
 
   var _recorder = exports._recorder = new Recorder();
   var recorder = _recorder;
@@ -616,12 +618,12 @@
     }
 
     _createClass(ObsBase, [{
-      key: 'flatten',
+      key: "flatten",
       value: function flatten() {
         return _flatten(this);
       }
     }, {
-      key: 'subAll',
+      key: "subAll",
       value: function subAll(condFn) {
         if (condFn == null) {
           condFn = function condFn() {
@@ -632,12 +634,12 @@
         });
       }
     }, {
-      key: 'raw',
+      key: "raw",
       value: function raw() {
         return this._base;
       }
     }, {
-      key: '_mkEv',
+      key: "_mkEv",
       value: function _mkEv(f) {
         var ev = new Ev(f, this);
         this.events.push(ev);
@@ -705,7 +707,7 @@
     }
 
     _createClass(ObsCell, [{
-      key: 'all',
+      key: "all",
       value: function all() {
         var _this5 = this;
 
@@ -715,12 +717,12 @@
         return this._base;
       }
     }, {
-      key: 'get',
+      key: "get",
       value: function get() {
         return this.all();
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
         var _this6 = this;
 
@@ -743,7 +745,7 @@
     }
 
     _createClass(SrcCell, [{
-      key: 'set',
+      key: "set",
       value: function set(x) {
         var _this8 = this;
 
@@ -778,7 +780,7 @@
     }
 
     _createClass(DepCell, [{
-      key: 'refresh',
+      key: "refresh",
       value: function refresh() {
         var _this10 = this;
 
@@ -813,7 +815,7 @@
                 var res = void 0;
                 _this10.disconnect();
                 if (recorded) {
-                  throw new Error('this refresh has already recorded its dependencies');
+                  throw new Error("this refresh has already recorded its dependencies");
                 }
                 _this10.refreshing = true;
                 recorded = true;
@@ -848,7 +850,7 @@
       // disconnect themselves as well
 
     }, {
-      key: 'disconnect',
+      key: "disconnect",
       value: function disconnect() {
         var _this11 = this;
 
@@ -913,14 +915,14 @@
       // called by recorder
 
     }, {
-      key: 'addNestedBind',
+      key: "addNestedBind",
       value: function addNestedBind(nestedBind) {
         return this.nestedBinds.push(nestedBind);
       }
       // called by recorder
 
     }, {
-      key: 'addCleanup',
+      key: "addCleanup",
       value: function addCleanup(cleanup) {
         return this.cleanups.push(cleanup);
       }
@@ -959,7 +961,7 @@
     }
 
     _createClass(ObsArray, [{
-      key: 'all',
+      key: "all",
       value: function all() {
         recorder.sub(this.onChange);
         return this._cells.map(function (c) {
@@ -967,14 +969,14 @@
         });
       }
     }, {
-      key: 'raw',
+      key: "raw",
       value: function raw() {
         return this._cells.map(function (c) {
           return c.raw();
         });
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
         var _this13 = this;
 
@@ -983,12 +985,12 @@
         });
       }
     }, {
-      key: 'rawCells',
+      key: "rawCells",
       value: function rawCells() {
         return this._cells;
       }
     }, {
-      key: 'at',
+      key: "at",
       value: function at(i) {
         recorder.sub(this.onChange, function (_ref4) {
           var _ref5 = _slicedToArray(_ref4, 3),
@@ -1005,7 +1007,7 @@
         return this._cells[i] != null ? this._cells[i].get() : undefined;
       }
     }, {
-      key: 'length',
+      key: "length",
       value: function length() {
         recorder.sub(this.onChangeCells, function (_ref6) {
           var _ref7 = _slicedToArray(_ref6, 3),
@@ -1018,12 +1020,12 @@
         return this._cells.length;
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
         return this.length();
       }
     }, {
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
         autoSub(this.onChangeCells, function (_ref8) {
@@ -1032,16 +1034,15 @@
               removed = _ref9[1],
               added = _ref9[2];
 
-          var cell = void 0;
           var _iteratorNormalCompletion5 = true;
           var _didIteratorError5 = false;
           var _iteratorError5 = undefined;
 
           try {
             for (var _iterator5 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _cell2 = _step5.value;
+              var cell = _step5.value;
 
-              _cell2.disconnect();
+              cell.disconnect();
             }
           } catch (err) {
             _didIteratorError5 = true;
@@ -1059,7 +1060,7 @@
           }
 
           var newCells = added.map(function (item) {
-            return cell = bind(function () {
+            return bind(function () {
               return f(item.get());
             });
           });
@@ -1068,7 +1069,7 @@
         return ys;
       }
     }, {
-      key: 'transform',
+      key: "transform",
       value: function transform(f, diff) {
         var _this14 = this;
 
@@ -1077,48 +1078,48 @@
         }, diff);
       }
     }, {
-      key: 'filter',
+      key: "filter",
       value: function filter(f) {
         return this.transform(function (arr) {
           return arr.filter(f);
         });
       }
     }, {
-      key: 'slice',
+      key: "slice",
       value: function slice(x, y) {
         return this.transform(function (arr) {
           return arr.slice(x, y);
         });
       }
     }, {
-      key: 'reduce',
+      key: "reduce",
       value: function reduce(f, init) {
         return this.all().reduce(f, init != null ? init : this.at(0));
       }
     }, {
-      key: 'reduceRight',
+      key: "reduceRight",
       value: function reduceRight(f, init) {
         return this.all().reduceRight(f, init != null ? init : this.at(0));
       }
     }, {
-      key: 'every',
+      key: "every",
       value: function every(f) {
         return this.all().every(f);
       }
     }, {
-      key: 'some',
+      key: "some",
       value: function some(f) {
         return this.all().some(f);
       }
     }, {
-      key: 'indexOf',
+      key: "indexOf",
       value: function indexOf(val, from) {
         if (from == null) {
           from = 0;
         }return this.all().indexOf(val, from);
       }
     }, {
-      key: 'lastIndexOf',
+      key: "lastIndexOf",
       value: function lastIndexOf(val, from) {
         if (from == null) {
           from = this.length() - 1;
@@ -1126,24 +1127,24 @@
         return this.all().lastIndexOf(val, from);
       }
     }, {
-      key: 'join',
+      key: "join",
       value: function join(separator) {
         if (separator == null) {
-          separator = ',';
+          separator = ",";
         }return this.all().join(separator);
       }
     }, {
-      key: 'first',
+      key: "first",
       value: function first() {
         return this.at(0);
       }
     }, {
-      key: 'last',
+      key: "last",
       value: function last() {
         return this.at(this.length() - 1);
       }
     }, {
-      key: 'indexed',
+      key: "indexed",
       value: function indexed() {
         var _this15 = this;
 
@@ -1161,7 +1162,7 @@
         return this._indexed;
       }
     }, {
-      key: 'concat',
+      key: "concat",
       value: function concat() {
         for (var _len5 = arguments.length, those = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
           those[_key5] = arguments[_key5];
@@ -1170,7 +1171,7 @@
         return _concat.apply(undefined, [this].concat(_toConsumableArray(Array.from(those))));
       }
     }, {
-      key: 'realSpliceCells',
+      key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
         var _this16 = this;
 
@@ -1191,12 +1192,12 @@
         });
       }
     }, {
-      key: 'realSplice',
+      key: "realSplice",
       value: function realSplice(index, count, additions) {
         return this.realSpliceCells(index, count, additions.map(_cell));
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(val, diff) {
         var _this17 = this;
 
@@ -1237,7 +1238,7 @@
     }
 
     _createClass(SrcArray, [{
-      key: 'spliceArray',
+      key: "spliceArray",
       value: function spliceArray(index, count, additions) {
         var _this19 = this;
 
@@ -1246,7 +1247,7 @@
         });
       }
     }, {
-      key: 'splice',
+      key: "splice",
       value: function splice(index, count) {
         for (var _len6 = arguments.length, additions = Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
           additions[_key6 - 2] = arguments[_key6];
@@ -1255,12 +1256,12 @@
         return this.spliceArray(index, count, additions);
       }
     }, {
-      key: 'insert',
+      key: "insert",
       value: function insert(x, index) {
         return this.splice(index, 0, x);
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(x) {
         var i = (0, _underscore2.default)(this.raw()).indexOf(x);
         if (i >= 0) {
@@ -1268,7 +1269,7 @@
         }
       }
     }, {
-      key: 'removeAll',
+      key: "removeAll",
       value: function removeAll(x) {
         var _this20 = this;
 
@@ -1285,7 +1286,7 @@
         });
       }
     }, {
-      key: 'removeAt',
+      key: "removeAt",
       value: function removeAt(index) {
         var _this21 = this;
 
@@ -1296,7 +1297,7 @@
         return val;
       }
     }, {
-      key: 'push',
+      key: "push",
       value: function push(x) {
         var _this22 = this;
 
@@ -1305,7 +1306,7 @@
         }), 0, x);
       }
     }, {
-      key: 'pop',
+      key: "pop",
       value: function pop() {
         var _this23 = this;
 
@@ -1314,12 +1315,12 @@
         }));
       }
     }, {
-      key: 'put',
+      key: "put",
       value: function put(i, x) {
         return this.splice(i, 1, x);
       }
     }, {
-      key: 'replace',
+      key: "replace",
       value: function replace(xs) {
         var _this24 = this;
 
@@ -1328,19 +1329,19 @@
         }), xs);
       }
     }, {
-      key: 'unshift',
+      key: "unshift",
       value: function unshift(x) {
         return this.insert(x, 0);
       }
     }, {
-      key: 'shift',
+      key: "shift",
       value: function shift() {
         return this.removeAt(0);
       }
       // TODO: How is this different from replace? we should use one or the other.
 
     }, {
-      key: 'update',
+      key: "update",
       value: function update(xs) {
         var _this25 = this;
 
@@ -1349,7 +1350,7 @@
         });
       }
     }, {
-      key: 'move',
+      key: "move",
       value: function move(src, dest) {
         var _this26 = this;
 
@@ -1364,10 +1365,10 @@
           });
 
           if (src < 0 || src > len - 1) {
-            throw 'Source ' + src + ' is outside of bounds of array of length ' + len;
+            throw "Source " + src + " is outside of bounds of array of length " + len;
           }
           if (dest < 0 || dest > len) {
-            throw 'Destination ' + dest + ' is outside of bounds of array of length ' + len;
+            throw "Destination " + dest + " is outside of bounds of array of length " + len;
           }
 
           var val = snap(function () {
@@ -1385,7 +1386,7 @@
       } // removeAt returns, but insert doesn't, so let's avoid inconsistency
 
     }, {
-      key: 'swap',
+      key: "swap",
       value: function swap(i1, i2) {
         var _this27 = this;
 
@@ -1394,10 +1395,10 @@
             return _this27.length();
           });
           if (i1 < 0 || i1 > len - 1) {
-            throw 'i1 ' + i1 + ' is outside of bounds of array of length ' + len;
+            throw "i1 " + i1 + " is outside of bounds of array of length " + len;
           }
           if (i2 < 0 || i2 > len - 1) {
-            throw 'i2 ' + i2 + ' is outside of bounds of array of length ' + len;
+            throw "i2 " + i2 + " is outside of bounds of array of length " + len;
           }
 
           var first = Math.min(i1, i2);
@@ -1408,7 +1409,7 @@
         });
       }
     }, {
-      key: 'reverse',
+      key: "reverse",
       value: function reverse() {
         var _this28 = this;
 
@@ -1466,7 +1467,7 @@
 
 
     _createClass(IndexedDepArray, [{
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
         autoSub(this.onChangeCells, function (_ref14) {
@@ -1514,7 +1515,7 @@
         return ys;
       }
     }, {
-      key: 'realSpliceCells',
+      key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
         var _is,
             _this31 = this;
@@ -1592,7 +1593,7 @@
     }
 
     _createClass(IndexedArray, [{
-      key: 'map',
+      key: "map",
       value: function map(f) {
         var ys = new MappedDepArray();
         autoSub(this._cells.onChange, function (_ref20) {
@@ -1618,7 +1619,7 @@
     }
 
     var casted = xss.map(function (xs) {
-      return cast(xs, 'array');
+      return cast(xs, "array");
     });
     var repLens = xss.map(function () {
       return 0;
@@ -1675,7 +1676,7 @@
     }
 
     _createClass(ObsMap, [{
-      key: 'get',
+      key: "get",
       value: function get(key) {
         this.subAll(function (result) {
           return result.has(key);
@@ -1683,7 +1684,7 @@
         return this._base.get(key);
       }
     }, {
-      key: 'has',
+      key: "has",
       value: function has(key) {
         recorder.sub(this.onAdd, function (additions) {
           return additions.has(key);
@@ -1694,13 +1695,13 @@
         return this._base.has(key);
       }
     }, {
-      key: 'all',
+      key: "all",
       value: function all() {
         this.subAll();
         return new Map(this._base);
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
         var _this35 = this;
 
@@ -1709,14 +1710,14 @@
         });
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
         recorder.sub(this.onRemove);
         recorder.sub(this.onAdd);
         return this._base.size;
       }
     }, {
-      key: 'realPut',
+      key: "realPut",
       value: function realPut(key, val) {
         if (this._base.has(key)) {
           var old = this._base.get(key);
@@ -1732,14 +1733,14 @@
         }
       }
     }, {
-      key: 'realRemove',
+      key: "realRemove",
       value: function realRemove(key) {
         var val = mapPop(this._base, key);
         this.onRemove.pub(new Map([[key, val]]));
         return val;
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(other) {
         var _this36 = this;
 
@@ -1801,7 +1802,7 @@
     }
 
     _createClass(SrcMap, [{
-      key: 'put',
+      key: "put",
       value: function put(key, val) {
         var _this38 = this;
 
@@ -1810,12 +1811,12 @@
         });
       }
     }, {
-      key: 'set',
+      key: "set",
       value: function set(key, val) {
         return this.put(key, val);
       }
     }, {
-      key: 'delete',
+      key: "delete",
       value: function _delete(key) {
         var _this39 = this;
 
@@ -1829,12 +1830,12 @@
         });
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(key) {
         return this.delete(key);
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
         var _this40 = this;
 
@@ -1848,7 +1849,7 @@
         });
       }
     }, {
-      key: 'update',
+      key: "update",
       value: function update(x) {
         var _this41 = this;
 
@@ -1931,7 +1932,7 @@
     }
 
     _createClass(ObsSet, [{
-      key: 'has',
+      key: "has",
       value: function has(key) {
         this.subAll(function (_ref30) {
           var _ref31 = _slicedToArray(_ref30, 2),
@@ -1943,13 +1944,13 @@
         return this._base.has(key);
       }
     }, {
-      key: 'all',
+      key: "all",
       value: function all() {
         this.subAll();
         return new Set(this._base);
       }
     }, {
-      key: 'readonly',
+      key: "readonly",
       value: function readonly() {
         var _this44 = this;
 
@@ -1958,17 +1959,17 @@
         });
       }
     }, {
-      key: 'values',
+      key: "values",
       value: function values() {
         return this.all();
       }
     }, {
-      key: 'entries',
+      key: "entries",
       value: function entries() {
         return this.all();
       }
     }, {
-      key: 'size',
+      key: "size",
       value: function size() {
         this.subAll(function (_ref32) {
           var _ref33 = _slicedToArray(_ref32, 2),
@@ -1980,7 +1981,7 @@
         return this._base.size;
       }
     }, {
-      key: 'union',
+      key: "union",
       value: function union(other) {
         var _this45 = this;
 
@@ -1989,7 +1990,7 @@
         });
       }
     }, {
-      key: 'intersection',
+      key: "intersection",
       value: function intersection(other) {
         var _this46 = this;
 
@@ -1998,7 +1999,7 @@
         });
       }
     }, {
-      key: 'difference',
+      key: "difference",
       value: function difference(other) {
         var _this47 = this;
 
@@ -2007,7 +2008,7 @@
         });
       }
     }, {
-      key: 'symmetricDifference',
+      key: "symmetricDifference",
       value: function symmetricDifference(other) {
         var _this48 = this;
 
@@ -2020,7 +2021,7 @@
         });
       }
     }, {
-      key: '_update',
+      key: "_update",
       value: function _update(y) {
         var _this49 = this;
 
@@ -2069,7 +2070,7 @@
     }
 
     _createClass(SrcSet, [{
-      key: 'add',
+      key: "add",
       value: function add(item) {
         var _this51 = this;
 
@@ -2082,12 +2083,12 @@
         });
       }
     }, {
-      key: 'put',
+      key: "put",
       value: function put(item) {
         return this.add(item);
       }
     }, {
-      key: 'delete',
+      key: "delete",
       value: function _delete(item) {
         var _this52 = this;
 
@@ -2100,12 +2101,12 @@
         });
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(item) {
         return this.delete(item);
       }
     }, {
-      key: 'clear',
+      key: "clear",
       value: function clear() {
         var _this53 = this;
 
@@ -2119,7 +2120,7 @@
         });
       }
     }, {
-      key: 'update',
+      key: "update",
       value: function update(y) {
         var _this54 = this;
 
@@ -2175,13 +2176,13 @@
         } else if (_underscore2.default.isFunction(val)) {
           type = null;
         } else if (_underscore2.default.isArray(val)) {
-          type = 'array';
+          type = "array";
         } else if (val instanceof Set) {
-          type = 'set';
+          type = "set";
         } else if (val instanceof Map) {
-          type = 'map';
+          type = "map";
         } else {
-          type = 'cell';
+          type = "cell";
         }
         result.push([name, { type: type, val: val }]);
       }
@@ -2236,7 +2237,7 @@
     if (_underscore2.default.isArray(obj)) {
       var arr = _array(_underscore2.default.clone(obj));
       Object.defineProperties(obj, _underscore2.default.object(Object.getOwnPropertyNames(SrcArray.prototype).concat(Object.getOwnPropertyNames(ObsArray.prototype)).concat(Object.getOwnPropertyNames(ObsBase.prototype)).filter(function (methName) {
-        return methName !== 'length';
+        return methName !== "length";
       }).map(function (methName) {
         var meth = obj[methName];
         var newMeth = function newMeth() {
@@ -2272,36 +2273,40 @@
           result.push(function (name, spec) {
             var desc = null;
             switch (spec.type) {
-              case 'cell':
-                var obs = _cell(spec.val != null ? spec.val : null);
-                desc = {
-                  configurable: true,
-                  enumerable: true,
-                  get: function get() {
-                    return obs.get();
-                  },
-                  set: function set(x) {
-                    return obs.set(x);
-                  }
-                };
-                break;
-              case 'array':
-                var view = reactify(spec.val != null ? spec.val : []);
-                desc = {
-                  configurable: true,
-                  enumerable: true,
-                  get: function get() {
-                    view.all();
-                    return view;
-                  },
-                  set: function set(x) {
-                    view.splice.apply(view, [0, view.length].concat(_toConsumableArray(Array.from(x))));
-                    return view;
-                  }
-                };
-                break;
+              case "cell":
+                {
+                  var obs = _cell(spec.val != null ? spec.val : null);
+                  desc = {
+                    configurable: true,
+                    enumerable: true,
+                    get: function get() {
+                      return obs.get();
+                    },
+                    set: function set(x) {
+                      return obs.set(x);
+                    }
+                  };
+                  break;
+                }
+              case "array":
+                {
+                  var view = reactify(spec.val != null ? spec.val : []);
+                  desc = {
+                    configurable: true,
+                    enumerable: true,
+                    get: function get() {
+                      view.all();
+                      return view;
+                    },
+                    set: function set(x) {
+                      view.splice.apply(view, [0, view.length].concat(_toConsumableArray(Array.from(x))));
+                      return view;
+                    }
+                  };
+                  break;
+                }
               default:
-                throw new Error('Unknown observable type: ' + type);
+                throw new Error("Unknown observable type: " + spec.type);
             }
             return [name, desc];
           }(name, spec));
@@ -2326,8 +2331,8 @@
         if (val instanceof ObsBase) {
           continue;
         }
-        var _type = _underscore2.default.isFunction(val) ? null : _underscore2.default.isArray(val) ? 'array' : 'cell';
-        result.push([name, { type: _type, val: val }]);
+        var type = _underscore2.default.isFunction(val) ? null : _underscore2.default.isArray(val) ? "array" : "cell";
+        result.push([name, { type: type, val: val }]);
       }
     } catch (err) {
       _didIteratorError8 = true;
@@ -2382,7 +2387,7 @@
         return value.all();
       };
     } else {
-      throw new Error('Cannot cast ' + value.constructor.name + ' to array!');
+      throw new Error("Cannot cast " + value.constructor.name + " to array!");
     }
 
     return new DepArray(f, diff);
@@ -2428,19 +2433,19 @@
 
   var cast = exports.cast = function cast(value, type) {
     if (type == null) {
-      type = 'cell';
+      type = "cell";
     }
     if ([ObsCell, ObsArray, ObsMap, ObsSet].includes(type)) {
       var realType = null;
       switch (type) {
         case ObsCell:
-          realType = 'cell';break;
+          realType = "cell";break;
         case ObsArray:
-          realType = 'array';break;
+          realType = "array";break;
         case ObsMap:
-          realType = 'map';break;
+          realType = "map";break;
         case ObsSet:
-          realType = 'set';break;
+          realType = "set";break;
       }
       type = realType;
     }
@@ -2529,7 +2534,7 @@
 
   // This is invasive; WeakMaps can't come soon enough....
   var uidify = exports.uidify = function uidify(x) {
-    return x.__rxUid != null ? x.__rxUid : Object.defineProperty(x, '__rxUid', {
+    return x.__rxUid != null ? x.__rxUid : Object.defineProperty(x, "__rxUid", {
       enumerable: false,
       value: mkuid()
     }).__rxUid;
