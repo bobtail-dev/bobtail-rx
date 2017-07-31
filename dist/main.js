@@ -368,7 +368,7 @@
           args[_key] = arguments[_key];
         }
 
-        return f.apply(undefined, _toConsumableArray(Array.from(args || [])));
+        return f.apply(undefined, _toConsumableArray(args || []));
       }
     };
   };
@@ -403,7 +403,7 @@
       cells[_key3] = arguments[_key3];
     }
 
-    return Array.from(new Set([].concat(_toConsumableArray(Array.from(cells)), _toConsumableArray(Array.from(allDownstreamHelper.apply(undefined, _toConsumableArray(Array.from(cells || [])))))).reverse())).reverse();
+    return Array.from(new Set([].concat(cells, _toConsumableArray(allDownstreamHelper.apply(undefined, _toConsumableArray(cells || [])))).reverse())).reverse();
   };
 
   var Recorder = function () {
@@ -686,7 +686,7 @@
       _this4.refreshAll = function () {
         if (_this4.onSet.downstreamCells.size && !_this4._shield) {
           _this4._shield = true;
-          var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(Array.from(downstreamCells()) || [])));
+          var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(downstreamCells()) || []));
           _cells2.forEach(function (c) {
             return c._shield = true;
           });
@@ -860,7 +860,7 @@
         var _iteratorError3 = undefined;
 
         try {
-          for (var _iterator3 = Array.from(this.cleanups)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          for (var _iterator3 = this.cleanups[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var cleanup = _step3.value;
 
             cleanup();
@@ -885,7 +885,7 @@
         var _iteratorError4 = undefined;
 
         try {
-          for (var _iterator4 = Array.from(this.nestedBinds)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+          for (var _iterator4 = this.nestedBinds[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
             var nestedBind = _step4.value;
 
             nestedBind.disconnect();
@@ -1168,7 +1168,7 @@
           those[_key5] = arguments[_key5];
         }
 
-        return _concat.apply(undefined, [this].concat(_toConsumableArray(Array.from(those))));
+        return _concat.apply(undefined, [this].concat(those));
       }
     }, {
       key: "realSpliceCells",
@@ -1177,12 +1177,12 @@
 
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
         var removedElems = snap(function () {
-          return Array.from(removed).map(function (x2) {
+          return removed.map(function (x2) {
             return x2.get();
           });
         });
         var addedElems = snap(function () {
-          return Array.from(additions).map(function (x3) {
+          return additions.map(function (x3) {
             return x3.get();
           });
         });
@@ -1204,7 +1204,7 @@
         var left = void 0,
             splices = void 0;
         var old = snap(function () {
-          return Array.from(_this17._cells).map(function (x) {
+          return _this17._cells.map(function (x) {
             return x.get();
           });
         });
@@ -1450,7 +1450,7 @@
 
       var _this30 = _possibleConstructorReturn(this, (IndexedDepArray.__proto__ || Object.getPrototypeOf(IndexedDepArray)).call(this, xs, diff));
 
-      _this30.is = Array.from(_this30._cells).map(function (x, i) {
+      _this30.is = _this30._cells.map(function (x, i) {
         return _cell(i);
       });
       _this30.onChangeCells = _this30._mkEv(function () {
@@ -1523,7 +1523,7 @@
         var i = void 0;
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
         var removedElems = snap(function () {
-          return Array.from(removed).map(function (x2) {
+          return removed.map(function (x2) {
             return x2.get();
           });
         });
@@ -1539,10 +1539,10 @@
         for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
           newIs.push(_cell(index + i));
         }
-        (_is = this.is).splice.apply(_is, [index, count].concat(_toConsumableArray(Array.from(newIs))));
+        (_is = this.is).splice.apply(_is, [index, count].concat(newIs));
 
         var addedElems = snap(function () {
-          return Array.from(additions).map(function (x3) {
+          return additions.map(function (x3) {
             return x3.get();
           });
         });
@@ -2299,7 +2299,7 @@
                       return view;
                     },
                     set: function set(x) {
-                      view.splice.apply(view, [0, view.length].concat(_toConsumableArray(Array.from(x))));
+                      view.splice.apply(view, [0, view.length].concat(_toConsumableArray(x)));
                       return view;
                     }
                   };

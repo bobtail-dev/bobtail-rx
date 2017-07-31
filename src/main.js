@@ -129,7 +129,7 @@ export let skipFirst = function(f) {
     if (first) {
       return first = false;
     } else {
-      return f(...Array.from(args || []));
+      return f(...args || []);
     }
   };
 };
@@ -145,24 +145,17 @@ export let upstream = function(cell) {
 
 var allDownstreamHelper = function(...cells) {
   if (cells.length) {
-    let downstream = Array.from(new Set(_.flatten(cells.map(cell => Array.from(cell.onSet.downstreamCells))
-    )
-    )
-    );
+    let downstream = Array.from(new Set(_.flatten(cells.map(cell => Array.from(cell.onSet.downstreamCells)))));
     return _.flatten([downstream, allDownstreamHelper(...Array.from(downstream || []))]);
   }
   return [];
 };
 
 export let allDownstream = (...cells) => Array.from(
-  new Set(
-    [
-      ...Array.from(cells),
-      ...Array.from(
-        allDownstreamHelper(...Array.from(cells || []))
-      )
-    ].reverse()
-  )
+  new Set([
+    ...cells,
+    ...allDownstreamHelper(...(cells || []))
+  ].reverse())
 ).reverse();
 
 
@@ -348,7 +341,7 @@ export class ObsCell extends ObsBase {
     this.refreshAll = () => {
       if (this.onSet.downstreamCells.size && !this._shield) {
         this._shield = true;
-        let cells = allDownstream(...Array.from(Array.from(downstreamCells()) || []));
+        let cells = allDownstream(...Array.from(downstreamCells()) || []);
         cells.forEach(c => c._shield = true);
         try { return cells.forEach(c => c.refresh()); }
         finally {
@@ -448,10 +441,10 @@ export class DepCell extends ObsCell {
   // disconnect themselves as well
   disconnect() {
     // TODO ordering of cleanup vs unsubscribes may require revisiting
-    for (let cleanup of Array.from(this.cleanups)) {
+    for (let cleanup of this.cleanups) {
       cleanup();
     }
-    for (let nestedBind of Array.from(this.nestedBinds)) {
+    for (let nestedBind of this.nestedBinds) {
       nestedBind.disconnect();
     }
     this.nestedBinds = [];
@@ -538,11 +531,11 @@ export class ObsArray extends ObsBase {
     }
     return this._indexed;
   }
-  concat(...those) { return concat(this, ...Array.from(those)); }
+  concat(...those) { return concat(this, ...those); }
   realSpliceCells(index, count, additions) {
     let removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
-    let removedElems = snap(() => Array.from(removed).map((x2) => x2.get()));
-    let addedElems = snap(() => Array.from(additions).map((x3) => x3.get()));
+    let removedElems = snap(() => removed.map((x2) => x2.get()));
+    let addedElems = snap(() => additions.map((x3) => x3.get()));
     return transaction(() => {
       this.onChangeCells.pub([index, removed, additions]);
       return this.onChange.pub([index, removedElems, addedElems]);
@@ -553,7 +546,7 @@ export class ObsArray extends ObsBase {
   }
   _update(val, diff) {
     let left, splices;
-    let old = snap(() => (Array.from(this._cells).map((x) => x.get())));
+    let old = snap(() => (this._cells.map((x) => x.get())));
     let fullSplice = [0, old.length, val];
     if(diff == null){
       ({ diff } = this);
@@ -651,7 +644,7 @@ export class IndexedDepArray extends ObsArray {
   constructor(xs, diff) {
     if (xs == null) { xs = []; }
     super(xs, diff);
-    this.is = (Array.from(this._cells).map((x, i) => cell(i)));
+    this.is = (this._cells.map((x, i) => cell(i)));
     this.onChangeCells = this._mkEv(() => [0, [], _.zip(this._cells, this.is)]); // [index, removed, added]
     this.onChange = this._mkEv(() => [0, [], _.zip(this.is, snap(() => this.all()))]);
   }
@@ -670,7 +663,7 @@ export class IndexedDepArray extends ObsArray {
   realSpliceCells(index, count, additions) {
     let i;
     let removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
-    let removedElems = snap(() => Array.from(removed).map((x2) => x2.get()));
+    let removedElems = snap(() => removed.map((x2) => x2.get()));
 
     let iterable = this.is.slice(index + count);
     for (let offset = 0; offset < iterable.length; offset++) {
@@ -683,9 +676,9 @@ export class IndexedDepArray extends ObsArray {
     for (i = 0; asc ? i < end : i > end; asc ? i++ : i--) {
       newIs.push(cell(index + i));
     }
-    this.is.splice(index, count, ...Array.from(newIs));
+    this.is.splice(index, count, ...newIs);
 
-    let addedElems = snap(() => Array.from(additions).map((x3) => x3.get()));
+    let addedElems = snap(() => additions.map((x3) => x3.get()));
     return transaction(() => {
       this.onChangeCells.pub([index, removed, _.zip(additions, newIs)]);
       return this.onChange.pub([index, removedElems, _.zip(addedElems, newIs)]);
@@ -1061,7 +1054,7 @@ export let reactify = function(obj, fieldspec) {
                 return view;
               },
               set(x) {
-                view.splice(0, view.length, ...Array.from(x));
+                view.splice(0, view.length, ...x);
                 return view;
               }
             };
