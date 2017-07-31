@@ -601,12 +601,10 @@
   };
 
   var subOnce = exports.subOnce = function subOnce(event, listener) {
-    var uid = autoSub(event, skipFirst.apply(undefined, _toConsumableArray(function (args) {
-      _underscore2.default.defer(function () {
-        return listener.apply(undefined, _toConsumableArray(args));
-      });
-      return event.unsub(uid);
-    })));
+    var uid = autoSub(event, skipFirst(function () {
+      listener.apply(undefined, arguments);
+      event.unsub(uid);
+    }));
     return uid;
   };
 

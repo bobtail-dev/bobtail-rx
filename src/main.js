@@ -298,13 +298,10 @@ export let autoSub = function(ev, listener) {
 };
 
 export let subOnce = function(event, listener) {
-  var uid = autoSub(
-    event,
-    skipFirst(...args => {
-      _.defer(() => listener(...args));
-      return event.unsub(uid);
-    })
-  );
+  let uid = autoSub(event, skipFirst((...args) => {
+    listener(...args);
+    event.unsub(uid);
+  }));
   return uid;
 };
 

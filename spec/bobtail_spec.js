@@ -368,7 +368,7 @@ describe('ObsArray', function() {
   describe('indexed', () => it('', function() {})); // TODO
   return describe('concat', function() {
     it('should form a single array out of many', () => expect(snap(() => rx.array([1,2,3]).concat([4,5,6], rx.array([7, 8, 9]), rx.array([10])).all())).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
-    return it('should update whenever any of its parent arrays change', function() {
+    it('should update whenever any of its parent arrays change', function() {
       let arr1 = rx.array([1,2,3]);
       let arr2 = rx.array([4,5,6]);
       let arr3 = rx.array([7,8,9]);
@@ -689,7 +689,7 @@ describe('DepArray', function() {
   beforeEach(function() {
     x = rx.cell([1,2,3]);
     xs = new rx.DepArray(function() { return x.get(); });
-    return ys = xs.map(x => 2 * x);
+    ys = xs.map(x => 2 * x);
   });
   it('should initialize to cell array contents', function() {
     expect(xs.all()).toEqual([1,2,3]);
@@ -1813,8 +1813,8 @@ describe('cast', () =>
   })
 );
 
-describe('autoSub', () =>
-  it('should automatically unsubscribe on bind exit', function() {
+describe('autoSub', () => {
+  it('should automatically unsubscribe on bind exit', () => {
     let count = 0;
     let x = rx.cell();
     let y = rx.cell();
@@ -1827,9 +1827,26 @@ describe('autoSub', () =>
     y.set(0);
     x.set(2);
     x.set(3);
-    return expect(count).toBe(6);
-  })
-);
+    expect(count).toBe(6);
+  });
+});
+
+describe('subOnce', () => {
+  it('should correctly unsubscribe from the event after a single call', () => {
+    let x = rx.cell(0);
+    let spy = jasmine.createSpy('spy');
+    expect(spy.calls.count()).toBe(0);
+
+    rx.subOnce(x.onSet, () => spy());
+    expect(spy.calls.count()).toBe(0);
+    x.set(1);
+    expect(spy.calls.count()).toBe(1);
+    x.set(2);
+    expect(spy.calls.count()).toBe(1);
+    x.set(3);
+    expect(spy.calls.count()).toBe(1);
+  });
+});
 
 describe('cellToMap', () =>
   it('should correctly track changes', function() {
@@ -2036,8 +2053,8 @@ describe('transaction', function() {
       return expect(len.get()).toBe(3);
     });
     return expect(x.raw()).toEqual([1,2,4]);
-});
-  return it('should not infinite loop if we call transaction as the result of an event pubbed by a transaction', function() {
+  });
+  it('should not infinite loop if we call transaction as the result of an event pubbed by a transaction', function() {
     let x = rx.cell(0);
     let changes = rx.cell(0);
     rx.autoSub(x.onSet, () => rx.transaction(() => changes.set(changes.raw() + 1)));
