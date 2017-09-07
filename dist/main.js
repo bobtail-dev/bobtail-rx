@@ -1896,9 +1896,9 @@
   };
   var _castOther = function _castOther(other) {
     if (other instanceof Set) {
-      other;
+      return other;
     } else if (other instanceof ObsSet) {
-      other = other.all();
+      return other.all();
     }
 
     if (other instanceof ObsArray) {
@@ -2011,11 +2011,7 @@
         var _this48 = this;
 
         return new DepSet(function () {
-          var me = _this48.all();
-          other = _castOther(other);
-          return new Set(Array.from(_union(me, other)).filter(function (item) {
-            return !me.has(item) || !other.has(item);
-          }));
+          return _difference(_this48.union(other).all(), _this48.intersection(other).all());
         });
       }
     }, {

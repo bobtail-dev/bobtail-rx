@@ -848,8 +848,8 @@ export class DepMap extends ObsMap {
 
 let objToJSSet = function(obj) { if (obj instanceof Set) { return obj; } else { return new Set(obj); } };
 let _castOther = function(other) {
-  if (other instanceof Set) { other;
-  } else if (other instanceof ObsSet) { other = other.all(); }
+  if (other instanceof Set) { return other;
+  } else if (other instanceof ObsSet) { return other.all(); }
 
   if (other instanceof ObsArray) { other = other.all(); }
   if (other instanceof ObsCell) { other = other.get(); }
@@ -883,9 +883,7 @@ export class ObsSet extends ObsBase {
   difference(other) { return new DepSet(() => difference(this.all(), _castOther(other))); }
   symmetricDifference(other) {
     return new DepSet(() => {
-      let me = this.all();
-      other = _castOther(other);
-      return new Set(Array.from(union(me, other)).filter(item => !me.has(item) || !other.has(item)));
+      return difference(this.union(other).all(), this.intersection(other).all());
     });
   }
   _update(y) { return transaction(() => {

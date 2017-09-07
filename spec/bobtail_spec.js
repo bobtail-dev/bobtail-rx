@@ -1180,95 +1180,106 @@ describe('ObsSet', function() {
       expect(x.has(42)).toBe(true);
       expect(x.put(43)).toBe(43);
       expect(x.has(42)).toBe(true);
-      return expect(x.has(43)).toBe(true);
+      expect(x.has(43)).toBe(true);
     });
-    return it('should support remove', () => expect(x.remove('a')).toBe('a'));
+    it('should support remove', () => expect(x.remove('a')).toBe('a'));
   });
-  return it('should support non-string values', function() {
+  it('should support non-string values', function() {
     let obj = {zzz: 777};
     x.put(obj);
     expect(x.has(obj)).toBe(true);
     x.remove(obj);
-    return expect(x.has(obj)).toBe(false);
+    expect(x.has(obj)).toBe(false);
   });
 });
 
+function setContentsEqual(set1, set2) {
+  let x = _.sortBy(Array.from(set1), JSON.stringify);
+  let y = _.sortBy(Array.from(set2), JSON.stringify);
+  expect(x).toEqual(y);
+}
 
-//describe 'ObsSet operations', ->
-//  x = y = z = null
-//  beforeEach ->
-//    x = rx.set ['a', 'c', []]
-//    y = rx.set ['a', {}, 'b']
-//    z = new Set ['a', {}, 'b']
-//  it 'should support union', ->
-//    reactive = x.union y
-//    simple = x.union z
-//    expect(reactive.all()).toEqual new Set ['a', 'b', 'c', {}, []]
-//    expect(simple.all()).toEqual new Set ['a', 'b', 'c', {}, []]
-//    x.put 42
-//    expect(reactive.all()).toEqual new Set [42, 'a', 'b', 'c', {}, []]
-//    expect(simple.all()).toEqual new Set [42, 'a', 'b', 'c', {}, []]
-//    y.put 42
-//    expect(reactive.all()).toEqual new Set [42, 'a', 'b', 'c', {}, []]
-//    expect(simple.all()).toEqual new Set [42, 'a', 'b', 'c', {}, []]
-//    x.put 50
-//    expect(reactive.all()).toEqual new Set [42, 50, 'a', 'b', 'c', {}, []]
-//    expect(simple.all()).toEqual new Set [42, 50, 'a', 'b', 'c', {}, []]
-//    y.put 60
-//    expect(reactive.all()).toEqual new Set [60, 42, 50, 'a', 'b', 'c', {}, []]
-//    expect(simple.all()).toEqual new Set [42, 50, 'a', 'b', 'c', {}, []]
-//  it 'should support intersection', ->
-//    reactive = x.intersection y
-//    simple = x.intersection z
-//    expect(reactive.all()).toEqual new Set ['a']
-//    expect(simple.all()).toEqual new Set ['a']
-//    x.put 42
-//    expect(reactive.all()).toEqual new Set ['a']
-//    expect(simple.all()).toEqual new Set ['a']
-//    y.put 42
-//    expect(reactive.all()).toEqual new Set [42, 'a']
-//    expect(simple.all()).toEqual new Set ['a']
-//    x.put 50
-//    expect(reactive.all()).toEqual new Set [42, 'a']
-//    expect(simple.all()).toEqual new Set ['a']
-//    y.put 60
-//    expect(reactive.all()).toEqual new Set [42, 'a']
-//    expect(simple.all()).toEqual new Set ['a']
-//  it 'should support difference', ->
-//    reactive = x.difference y
-//    simple = x.difference z
-//    expect(reactive.all()).toEqual new Set ['c', []]
-//    expect(simple.all()).toEqual new Set ['c', []]
-//    x.put 42
-//    expect(reactive.all()).toEqual new Set ['c', 42, []]
-//    expect(simple.all()).toEqual new Set ['c', 42, []]
-//    y.put 42
-//    expect(reactive.all()).toEqual new Set ['c', []]
-//    expect(simple.all()).toEqual new Set ['c', 42, []]
-//    x.put 50
-//    expect(reactive.all()).toEqual new Set ['c', 50, []]
-//    expect(simple.all()).toEqual new Set ['c', 42, 50, []]
-//    y.put 60
-//    expect(reactive.all()).toEqual new Set ['c', 50, []]
-//    expect(simple.all()).toEqual new Set ['c', 42, 50, []]
-//  it 'should support symmetricDifference', ->
-//    reactive = x.symmetricDifference y
-//    simple = x.symmetricDifference z
-//    expect(reactive.all()).toEqual new Set ['c', [], {}, 'b']
-//    expect(simple.all()).toEqual new Set ['c', [], {}, 'b']
-//    x.put 42
-//    expect(reactive.all()).toEqual new Set ['c', [], 42, {}, 'b']
-//    expect(simple.all()).toEqual new Set ['c', [], {}, 42, 'b']
-//    y.put 42
-//    expect(reactive.all()).toEqual new Set ['c', [], {}, 'b']
-//    expect(simple.all()).toEqual new Set ['c', [], {}, 42, 'b']
-//    x.put 50
-//    expect(reactive.all()).toEqual new Set ['c', 50, [], {}, 'b']
-//    expect(simple.all()).toEqual new Set [50, 'c', [], {}, 42, 'b']
-//    y.put 60
-//    expect(reactive.all()).toEqual new Set ['c', 50, [], {},  60, 'b']
-//    expect(simple.all()).toEqual new Set [50, 'c', [], {}, 42, 'b']
-
+describe('ObsSet operations', function() {
+  let y, z;
+  let x = (y = (z = null));
+  beforeEach(function() {
+    x = rx.set(['a', 'c', []]);
+    y = rx.set(['a', {}, 'b']);
+    z = new Set(['a', {}, 'b']);
+  });
+  it('should support union', function() {
+    const reactive = x.union(y);
+    const simple = x.union(z);
+    setContentsEqual(reactive.all(), new Set(['a', 'b', 'c', {}, []]));
+    setContentsEqual(simple.all(), new Set(['a', 'b', 'c', {}, []]));
+    x.put(42);
+    setContentsEqual(reactive.all(), new Set([42, 'a', 'b', 'c', {}, []]));
+    setContentsEqual(simple.all(), new Set([42, 'a', 'b', 'c', {}, []]));
+    y.put(42);
+    setContentsEqual(reactive.all(), new Set([42, 'a', 'b', 'c', {}, []]));
+    setContentsEqual(simple.all(), new Set([42, 'a', 'b', 'c', {}, []]));
+    x.put(50);
+    setContentsEqual(reactive.all(), new Set([42, 50, 'a', 'b', 'c', {}, []]));
+    setContentsEqual(simple.all(), new Set([42, 50, 'a', 'b', 'c', {}, []]));
+    y.put(60);
+    setContentsEqual(reactive.all(), new Set([60, 42, 50, 'a', 'b', 'c', {}, []]));
+    setContentsEqual(simple.all(), new Set([42, 50, 'a', 'b', 'c', {}, []]));
+  });
+  it('should support intersection', function() {
+    const reactive = x.intersection(y);
+    const simple = x.intersection(z);
+    setContentsEqual(reactive.all(), new Set(['a']));
+    setContentsEqual(simple.all(), new Set(['a']));
+    x.put(42);
+    setContentsEqual(reactive.all(), new Set(['a']));
+    setContentsEqual(simple.all(), new Set(['a']));
+    y.put(42);
+    setContentsEqual(reactive.all(), new Set([42, 'a']));
+    setContentsEqual(simple.all(), new Set(['a']));
+    x.put(50);
+    setContentsEqual(reactive.all(), new Set([42, 'a']));
+    setContentsEqual(simple.all(), new Set(['a']));
+    y.put(60);
+    setContentsEqual(reactive.all(), new Set([42, 'a']));
+    setContentsEqual(simple.all(), new Set(['a']));
+  });
+  it('should support difference', function() {
+    const reactive = x.difference(y);
+    const simple = x.difference(z);
+    setContentsEqual(reactive.all(), new Set(['c', []]));
+    setContentsEqual(simple.all(), new Set(['c', []]));
+    x.put(42);
+    setContentsEqual(reactive.all(), new Set(['c', 42, []]));
+    setContentsEqual(simple.all(), new Set(['c', 42, []]));
+    y.put(42);
+    setContentsEqual(reactive.all(), new Set(['c', []]));
+    setContentsEqual(simple.all(), new Set(['c', 42, []]));
+    x.put(50);
+    setContentsEqual(reactive.all(), new Set(['c', 50, []]));
+    setContentsEqual(simple.all(), new Set(['c', 42, 50, []]));
+    y.put(60);
+    setContentsEqual(reactive.all(), new Set(['c', 50, []]));
+    setContentsEqual(simple.all(), new Set(['c', 42, 50, []]));
+  });
+  it('should support symmetricDifference', function() {
+    const reactive = x.symmetricDifference(y);
+    const simple = x.symmetricDifference(z);
+    setContentsEqual(reactive.all(), new Set(['c', [], {}, 'b']));
+    setContentsEqual(simple.all(), new Set(['c', [], {}, 'b']));
+    x.put(42);
+    setContentsEqual(reactive.all(), new Set(['c', [], 42, {}, 'b']));
+    setContentsEqual(simple.all(), new Set(['c', [], {}, 42, 'b']));
+    y.put(42);
+    setContentsEqual(reactive.all(), new Set(['c', [], {}, 'b']));
+    setContentsEqual(simple.all(), new Set(['c', [], {}, 42, 'b']));
+    x.put(50);
+    setContentsEqual(reactive.all(), new Set(['c', 50, [], {}, 'b']));
+    setContentsEqual(simple.all(), new Set([50, 'c', [], {}, 42, 'b']));
+    y.put(60);
+    setContentsEqual(reactive.all(), new Set(['c', 50, [], {},  60, 'b']));
+    setContentsEqual(simple.all(), new Set([50, 'c', [], {}, 42, 'b']));
+  });
+});
 
 describe('nested bindings', function() {
   let a, b, elt, innerDisposed;
