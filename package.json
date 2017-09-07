@@ -18,7 +18,7 @@
     "eslint": "eslint src/**/*.js --fix",
     "minify": "uglifyjs -mc --source-map --screw-ie8 -o dist/main.min.js dist/main.js",
     "typescript": "",
-    "test": "npm run eslint && babel-node spec/run.js"
+    "test": "babel-node spec/run.js && npm run eslint"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
