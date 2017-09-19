@@ -2,6 +2,7 @@ import _ from 'underscore';
 import * as rx from '../src/main.js';
 let {snap, bind, Ev} = rx;
 jasmine.CATCH_EXCEPTIONS = false;;
+Error.stackTraceLimit = 20;
 
 describe('ObsBase', () => it('should start', function() {}));
 
