@@ -76,7 +76,7 @@ describe('ObsArray', function() {
     it('should update if the value of the array at that index changes', function() {
       let arr;
       return arr = rx.array([1, 2]);
-  });
+    });
 
     it('should return undefined if the index is invalid', function() {
       let arr = rx.array([0, 1, 2, 3, 4, 5]);
@@ -2072,5 +2072,66 @@ describe('transaction', function() {
       });
     });
     expect(changes.raw()).toBe(6);
+  });
+});
+
+describe('.to casting', () => {
+  let cell, array, map, set;
+  beforeEach(() => {
+    cell = rx.cell([['a', 1]]);
+    array = rx.array([['b', 2]]);
+    set = rx.set([['e', 5], ['f', 6]]);
+    map = rx.map([['c', 3], ['d', 4]]);
+  });
+  it('from cells should work', () => {
+    expect(cell.toCell().raw()).toEqual([['a', 1]]);
+    expect(cell.toArray().raw()).toEqual([['a', 1]]);
+    expect(cell.toMap().raw()).toEqual(new Map([['a', 1]]));
+    expect(Array.from(cell.toSet().raw())).toEqual([['a', 1]]);
+
+    cell.set([['z', 26]]);
+    expect(cell.toCell().raw()).toEqual([['z', 26]]);
+    expect(cell.toArray().raw()).toEqual([['z', 26]]);
+    expect(cell.toMap().raw()).toEqual(new Map([['z', 26]]));
+    expect(Array.from(cell.toSet().raw())).toEqual([['z', 26]]);
+  });
+  it('from arrays should work', () => {
+    expect(array.toCell().raw()).toEqual([['b', 2]]);
+    expect(array.toArray().raw()).toEqual([['b', 2]]);
+    expect(array.toMap().raw()).toEqual(new Map([['b', 2]]));
+    expect(Array.from(array.toSet().raw())).toEqual([['b', 2]]);
+
+    array.push(['xkcd', 42]);
+
+    expect(array.toCell().raw()).toEqual([['b', 2], ['xkcd', 42]]);
+    expect(array.toArray().raw()).toEqual([['b', 2], ['xkcd', 42]]);
+    expect(array.toMap().raw()).toEqual(new Map([['b', 2], ['xkcd', 42]]));
+    expect(Array.from(array.toSet().raw())).toEqual([['b', 2], ['xkcd', 42]]);
+  });
+  it('from sets should work', () => {
+    expect(Array.from(set.toCell().raw())).toEqual([['e', 5], ['f', 6]]);
+    expect(set.toArray().raw()).toEqual([['e', 5], ['f', 6]]);
+    expect(Array.from(set.toMap().raw())).toEqual([['e', 5], ['f', 6]]);
+    expect(Array.from(set.toSet().raw())).toEqual([['e', 5], ['f', 6]]);
+
+    set.put(['bob', 'smith']);
+
+    expect(Array.from(set.toCell().raw())).toEqual([['e', 5], ['f', 6], ['bob', 'smith']]);
+    expect(set.toArray().raw()).toEqual([['e', 5], ['f', 6], ['bob', 'smith']]);
+    expect(Array.from(set.toMap().raw())).toEqual([['e', 5], ['f', 6], ['bob', 'smith']]);
+    expect(Array.from(set.toSet().raw())).toEqual([['e', 5], ['f', 6], ['bob', 'smith']]);
+  });
+  it('from maps should work', () => {
+    expect(map.toCell().raw()).toEqual(new Map([['c', 3], ['d', 4]]));
+    expect(map.toArray().raw()).toEqual([['c', 3], ['d', 4]]);
+    expect(map.toMap().raw()).toEqual(new Map([['c', 3], ['d', 4]]));
+    expect(Array.from(map.toSet().raw())).toEqual([['c', 3], ['d', 4]]);
+
+    map.put('joe', 'schmoe');
+
+    expect(map.toCell().raw()).toEqual(new Map([['c', 3], ['d', 4], ['joe', 'schmoe']]));
+    expect(map.toArray().raw()).toEqual([['c', 3], ['d', 4], ['joe', 'schmoe']]);
+    expect(map.toMap().raw()).toEqual(new Map([['c', 3], ['d', 4], ['joe', 'schmoe']]));
+    expect(Array.from(map.toSet().raw())).toEqual([['c', 3], ['d', 4], ['joe', 'schmoe']]);
   });
 });
