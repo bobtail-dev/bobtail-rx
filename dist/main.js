@@ -16,7 +16,7 @@
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.transaction = exports.smartUidify = exports.uidify = exports.basicDiff = exports.cellToSet = exports.cellToMap = exports.cellToArray = exports.flatten = exports.cast = exports.set = exports.map = exports.array = exports.cell = exports.autoReactify = exports.reactify = exports.unlift = exports.lift = exports.liftSpec = exports.DepSet = exports.SrcSet = exports.ObsSet = exports.DepMap = exports.SrcMap = exports.ObsMap = exports.concat = exports.IndexedArray = exports.DepArray = exports.IndexedDepArray = exports.MappedDepArray = exports.SrcArray = exports.ObsArray = exports.DepCell = exports.SrcCell = exports.ObsCell = exports.ObsBase = exports.subOnce = exports.autoSub = exports.onDispose = exports.snap = exports.postLagBind = exports.lagBind = exports.bind = exports.promiseBind = exports.asyncBind = exports.hideMutationWarnings = exports._recorder = exports.types = exports.allDownstream = exports.upstream = exports.skipFirst = exports.Ev = exports._depMgr = exports.DepMgr = undefined;
+  exports.transaction = exports.smartUidify = exports.uidify = exports._rxUid = exports.basicDiff = exports.cellToSet = exports.cellToMap = exports.cellToArray = exports.flatten = exports.cast = exports.set = exports.map = exports.array = exports.cell = exports.autoReactify = exports.reactify = exports.unlift = exports.lift = exports.liftSpec = exports.DepSet = exports.SrcSet = exports.ObsSet = exports.DepMap = exports.SrcMap = exports.ObsMap = exports.concat = exports.IndexedArray = exports.DepArray = exports.IndexedDepArray = exports.MappedDepArray = exports.SrcArray = exports.ObsArray = exports.DepCell = exports.SrcCell = exports.ObsCell = exports.ObsBase = exports.subOnce = exports.autoSub = exports.onDispose = exports.snap = exports.postLagBind = exports.lagBind = exports.bind = exports.promiseBind = exports.asyncBind = exports.hideMutationWarnings = exports._recorder = exports.types = exports.allDownstream = exports.upstream = exports.skipFirst = exports.Ev = exports._depMgr = exports.DepMgr = undefined;
 
   var _underscore2 = _interopRequireDefault(_underscore);
 
@@ -2535,12 +2535,13 @@
     };
   };
 
-  // This is invasive; WeakMaps can't come soon enough....
+  var _rxUid = exports._rxUid = Symbol("rx uid");
+
   var uidify = exports.uidify = function uidify(x) {
-    return x.__rxUid != null ? x.__rxUid : Object.defineProperty(x, "__rxUid", {
+    return x[_rxUid] != null ? x[_rxUid] : Object.defineProperty(x, _rxUid, {
       enumerable: false,
       value: mkuid()
-    }).__rxUid;
+    })[_rxUid];
   };
 
   // Need a "hash" that distinguishes different types and distinguishes object
