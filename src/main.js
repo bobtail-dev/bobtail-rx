@@ -257,7 +257,7 @@ export let asyncBind = function(init, f) {
 
 export let promiseBind = (init, f) => asyncBind(
   init,
-  function() { return this.record(f).done(res => this.done(res)); }
+  function() { return this.record(f).then(this.done); }
 );
 
 export let bind = f => asyncBind(null, function() { return this.done(this.record(f)); });
@@ -324,13 +324,6 @@ class ObsBase {
 
 }
 
-ObsBase.prototype.to = {
-  cell: () => cell.from(this),
-  array: () => array.from(this),
-  map: () => map.from(this),
-  set: () => set.from(this)
-};
-
 export {ObsBase};
 
 export class ObsCell extends ObsBase {
@@ -339,20 +332,20 @@ export class ObsCell extends ObsBase {
     this._base = _base != null ? _base : null;
     this.onSet = this._mkEv(() => [null, this._base]); // [old, new]
     this._shield = false;
-    let downstreamCells = () => this.onSet.downstreamCells;
-    this.refreshAll = () => {
-      if (this.onSet.downstreamCells.size && !this._shield) {
-        this._shield = true;
-        let cells = allDownstream(...Array.from(downstreamCells()) || []);
-        cells.forEach(c => c._shield = true);
-        try { return cells.forEach(c => c.refresh()); }
-        finally {
-          cells.forEach(c => c._shield = false);
-          this._shield = false;
-        }
+    autoSub(this.onSet, () => this._refreshAll());
+  }
+  _refreshAll() {
+    let downstreamCells = this.onSet.downstreamCells;
+    if (downstreamCells.size && !this._shield) {
+      this._shield = true;
+      let cells = allDownstream(...Array.from(downstreamCells) || []);
+      cells.forEach(c => c._shield = true);
+      try { return cells.forEach(c => c.refresh()); }
+      finally {
+        cells.forEach(c => c._shield = false);
+        this._shield = false;
       }
-    };
-    this.refreshSub = autoSub(this.onSet, this.refreshAll);
+    }
   }
 
   all() {
@@ -361,19 +354,22 @@ export class ObsCell extends ObsBase {
   }
   get() { return this.all(); }
   readonly() { return new DepCell(() => this.all()); }
+  _update(x) {
+    if (this._base !== x) {
+      let old = this._base;
+      this._base = x;
+      this.onSet.pub([old, x]);
+      return old;
+    }
+    return this._base;
+  }
 }
 
 export class SrcCell extends ObsCell {
-  set(x) {
-    return recorder.mutating(() => {
-      if (this._base !== x) {
-        let old = this._base;
-        this._base = x;
-        this.onSet.pub([old, x]);
-        return old;
-      }
-    });
+  update(x) {
+    return recorder.mutating(() => this._update(x));
   }
+  set(x) {return this.update(x);}
 }
 
 export class DepCell extends ObsCell {
@@ -407,7 +403,7 @@ export class DepCell extends ObsCell {
       let recorded = false;
       let syncResult = null;
       let isSynchronous = false;
-      var env = {
+      let env = {
         // next two are for tolerating env.done calls from within env.record
         record: f => {
           // TODO document why @refreshing exists
@@ -756,7 +752,7 @@ export class ObsMap extends ObsBase {
     recorder.sub(this.onAdd);
     return this._base.size;
   }
-  realPut(key, val) {
+  _realPut(key, val) {
     if (this._base.has(key)) {
       let old = this._base.get(key);
       if (old !== val) {
@@ -770,7 +766,7 @@ export class ObsMap extends ObsBase {
       return undefined;
     }
   }
-  realRemove(key) {
+  _realRemove(key) {
     let val = mapPop(this._base, key);
     this.onRemove.pub(new Map([[key, val]]));
     return val;
@@ -816,12 +812,12 @@ export class ObsMap extends ObsBase {
 }
 
 export class SrcMap extends ObsMap {
-  put(key, val) { return recorder.mutating(() => this.realPut(key, val)); }
+  put(key, val) { return recorder.mutating(() => this._realPut(key, val)); }
   set(key, val) { return this.put(key, val); }
   delete(key) { return recorder.mutating(() => {
     let val = undefined;
     if (this._base.has(key)) {
-      val = this.realRemove(key);
+      val = this._realRemove(key);
       this.onRemove.pub(new Map([[key, val]]));
     }
     return val;
@@ -871,6 +867,7 @@ export class ObsSet extends ObsBase {
     return new Set(this._base);
   }
   readonly() { return new DepSet(() => this.all()); }
+  keys() { return this.all(); }
   values() { return this.all(); }
   entries() { return this.all(); }
   size() {
