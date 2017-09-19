@@ -1669,31 +1669,26 @@ describe('asyncBind', function() {
 
 // todo: remove jquery dependency
 
-// describe('promiseBind', () =>
-//   it('should work', function() {
-//     let sleep = function(wait) {
-//       let deferred = $.Deferred();
-//       setTimeout(
-//         () => deferred.resolve(42 + wait),
-//         wait
-//       );
-//       return deferred.promise();
-//     };
-//     let waitTime = rx.cell(10);
-//     let closure = {};
-//     let secretToLife = rx.promiseBind(null, function() {
-//       let c = sleep(waitTime.get());
-//       closure.callback = c;
-//       return c;
-//     });
-//     expect(secretToLife.get()).toBe(null);
-//     return closure.callback.done(function() {
-//       expect(secretToLife.get()).toBe === 52;
-//       waitTime.set(5);
-//       return closure.callback.done(() => expect(secretToLife.get()).toBe(47));
-//     });
-//   })
-// );
+describe('promiseBind', () =>
+  it('should work', function() {
+    let retVal = rx.cell(42);
+    let promise = (ret) => {
+      return new Promise((resolve, reject) => _.defer(() => resolve(ret)));
+    };
+    let callback;
+    let secretToLife = rx.promiseBind(null, function() {
+      let c = promise(retVal.get());
+      callback = c;
+      return c;
+    });
+    expect(secretToLife.get()).toBe(null);
+    callback.then(function() {
+      expect(secretToLife.get()).toBe === 42;
+      retVal.set(5);
+      return callback.then(() => expect(secretToLife.get()).toBe(5));
+    });
+  })
+);
 
 describe('lagBind', function() {
   let start, y;

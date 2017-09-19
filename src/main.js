@@ -257,7 +257,7 @@ export let asyncBind = function(init, f) {
 
 export let promiseBind = (init, f) => asyncBind(
   init,
-  function() { return this.record(f).done(res => this.done(res)); }
+  function() { return this.record(f).then(res => this.done(res)); }
 );
 
 export let bind = f => asyncBind(null, function() { return this.done(this.record(f)); });

@@ -540,7 +540,7 @@
     return asyncBind(init, function () {
       var _this = this;
 
-      return this.record(f).done(function (res) {
+      return this.record(f).then(function (res) {
         return _this.done(res);
       });
     });
@@ -698,13 +698,19 @@
         return [null, _this4._base];
       }); // [old, new]
       _this4._shield = false;
-      var downstreamCells = function downstreamCells() {
-        return _this4.onSet.downstreamCells;
-      };
-      _this4.refreshAll = function () {
-        if (_this4.onSet.downstreamCells.size && !_this4._shield) {
-          _this4._shield = true;
-          var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(downstreamCells()) || []));
+      autoSub(_this4.onSet, function () {
+        return _this4._refreshAll();
+      });
+      return _this4;
+    }
+
+    _createClass(ObsCell, [{
+      key: "_refreshAll",
+      value: function _refreshAll() {
+        var downstreamCells = this.onSet.downstreamCells;
+        if (downstreamCells.size && !this._shield) {
+          this._shield = true;
+          var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(downstreamCells) || []));
           _cells2.forEach(function (c) {
             return c._shield = true;
           });
@@ -716,15 +722,11 @@
             _cells2.forEach(function (c) {
               return c._shield = false;
             });
-            _this4._shield = false;
+            this._shield = false;
           }
         }
-      };
-      _this4.refreshSub = autoSub(_this4.onSet, _this4.refreshAll);
-      return _this4;
-    }
-
-    _createClass(ObsCell, [{
+      }
+    }, {
       key: "all",
       value: function all() {
         var _this5 = this;
@@ -748,6 +750,17 @@
           return _this6.all();
         });
       }
+    }, {
+      key: "_update",
+      value: function _update(x) {
+        if (this._base !== x) {
+          var old = this._base;
+          this._base = x;
+          this.onSet.pub([old, x]);
+          return old;
+        }
+        return this._base;
+      }
     }]);
 
     return ObsCell;
@@ -763,18 +776,18 @@
     }
 
     _createClass(SrcCell, [{
-      key: "set",
-      value: function set(x) {
+      key: "update",
+      value: function update(x) {
         var _this8 = this;
 
         return recorder.mutating(function () {
-          if (_this8._base !== x) {
-            var old = _this8._base;
-            _this8._base = x;
-            _this8.onSet.pub([old, x]);
-            return old;
-          }
+          return _this8._update(x);
         });
+      }
+    }, {
+      key: "set",
+      value: function set(x) {
+        return this.update(x);
       }
     }]);
 
@@ -1733,8 +1746,8 @@
         return this._base.size;
       }
     }, {
-      key: "realPut",
-      value: function realPut(key, val) {
+      key: "_realPut",
+      value: function _realPut(key, val) {
         if (this._base.has(key)) {
           var old = this._base.get(key);
           if (old !== val) {
@@ -1749,8 +1762,8 @@
         }
       }
     }, {
-      key: "realRemove",
-      value: function realRemove(key) {
+      key: "_realRemove",
+      value: function _realRemove(key) {
         var val = mapPop(this._base, key);
         this.onRemove.pub(new Map([[key, val]]));
         return val;
@@ -1823,7 +1836,7 @@
         var _this38 = this;
 
         return recorder.mutating(function () {
-          return _this38.realPut(key, val);
+          return _this38._realPut(key, val);
         });
       }
     }, {
@@ -1839,7 +1852,7 @@
         return recorder.mutating(function () {
           var val = undefined;
           if (_this39._base.has(key)) {
-            val = _this39.realRemove(key);
+            val = _this39._realRemove(key);
             _this39.onRemove.pub(new Map([[key, val]]));
           }
           return val;
