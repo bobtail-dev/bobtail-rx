@@ -317,6 +317,11 @@ class ObsBase {
     this.events.push(ev);
     return ev;
   }
+  toCell() {return cell.from(this);}
+  toArray() {return array.from(this);}
+  toMap() {return map.from(this);}
+  toSet() {return set.from(this);}
+
 }
 
 ObsBase.prototype.to = {
@@ -545,9 +550,7 @@ export class ObsArray extends ObsBase {
     let left, splices;
     let old = snap(() => (this._cells.map((x) => x.get())));
     let fullSplice = [0, old.length, val];
-    if(diff == null){
-      ({ diff } = this);
-    }
+    diff = diff || this.diff;
     left = permToSplices(old.length, val, diff(old, val));
     splices = left != null ? left : [fullSplice];
     return splices.map(([index, count, additions]) => this.realSplice(index, count, additions));
@@ -721,7 +724,7 @@ export let concat = function(...xss) {
 
 let objToJSMap = function(obj) {
   if (obj instanceof Map) { return obj;
-  } else if (_.isArray(obj)) { return new Map(obj);
+  } else if (_.isArray(obj) || obj instanceof Set) { return new Map(obj);
   } else { return new Map(_.pairs(obj)); }
 };
 
@@ -848,11 +851,7 @@ export class DepMap extends ObsMap {
 
 let objToJSSet = function(obj) { if (obj instanceof Set) { return obj; } else { return new Set(obj); } };
 let _castOther = function(other) {
-  if (other instanceof Set) { return other;
-  } else if (other instanceof ObsSet) { return other.all(); }
-
-  if (other instanceof ObsArray) { other = other.all(); }
-  if (other instanceof ObsCell) { other = other.get(); }
+  if (other instanceof ObsBase) { other = other.all(); }
   return new Set(other);
 };
 
@@ -988,7 +987,10 @@ export let lift = function(x, fieldspec) {
   });
 };
 
-export let unlift = x => _.mapObject(x, function(v) { if (v instanceof ObsBase) { return v.all(); } else { return v; } });
+export let unlift = x => _.mapObject(x, function(v) {
+  if (v instanceof ObsBase) { return v.all(); }
+  else { return v; }
+});
 
 //
 // Implicitly reactive objects
@@ -1105,7 +1107,7 @@ array.from = function(value, diff) {
 export let map = value => new SrcMap(value);
 map.from = function(value) {
   if (value instanceof ObsMap) { return value;
-  } else if (value instanceof ObsBase) { return new DepMap(function() { return value.get(); });
+  } else if (value instanceof ObsBase) { return new DepMap(function() { return value.all(); });
   } else { return new DepMap(function() { return value; }); }
 };
 
@@ -1137,7 +1139,10 @@ export let cast = function(value, type) {
   } else {
     let opts  = value;
     let types = type;
-    return _.mapObject(opts, function(value, key) { if (types[key]) { return cast(value, types[key]); } else { return value; } });
+    return _.mapObject(opts, function(value, key) {
+      if (types[key]) { return cast(value, types[key]); }
+      else { return value; }
+    });
   }
 };
 

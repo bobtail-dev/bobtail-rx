@@ -643,6 +643,26 @@
         this.events.push(ev);
         return ev;
       }
+    }, {
+      key: "toCell",
+      value: function toCell() {
+        return _cell.from(this);
+      }
+    }, {
+      key: "toArray",
+      value: function toArray() {
+        return _array.from(this);
+      }
+    }, {
+      key: "toMap",
+      value: function toMap() {
+        return _map.from(this);
+      }
+    }, {
+      key: "toSet",
+      value: function toSet() {
+        return _set.from(this);
+      }
     }]);
 
     return ObsBase;
@@ -1207,9 +1227,7 @@
           });
         });
         var fullSplice = [0, old.length, val];
-        if (diff == null) {
-          diff = this.diff;
-        }
+        diff = diff || this.diff;
         left = permToSplices(old.length, val, diff(old, val));
         splices = left != null ? left : [fullSplice];
         return splices.map(function (_ref12) {
@@ -1641,7 +1659,7 @@
   var objToJSMap = function objToJSMap(obj) {
     if (obj instanceof Map) {
       return obj;
-    } else if (_underscore2.default.isArray(obj)) {
+    } else if (_underscore2.default.isArray(obj) || obj instanceof Set) {
       return new Map(obj);
     } else {
       return new Map(_underscore2.default.pairs(obj));
@@ -1895,17 +1913,8 @@
     }
   };
   var _castOther = function _castOther(other) {
-    if (other instanceof Set) {
-      return other;
-    } else if (other instanceof ObsSet) {
-      return other.all();
-    }
-
-    if (other instanceof ObsArray) {
+    if (other instanceof ObsBase) {
       other = other.all();
-    }
-    if (other instanceof ObsCell) {
-      other = other.get();
     }
     return new Set(other);
   };
@@ -2396,7 +2405,7 @@
       return value;
     } else if (value instanceof ObsBase) {
       return new DepMap(function () {
-        return value.get();
+        return value.all();
       });
     } else {
       return new DepMap(function () {
