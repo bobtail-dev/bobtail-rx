@@ -1185,14 +1185,15 @@ export let basicDiff = function(key) {
   };
 };
 
-// This is invasive; WeakMaps can't come soon enough....
+export let _rxUid = Symbol("rx uid");
+
 export let uidify = x =>
-  x.__rxUid != null ? x.__rxUid : (
-    Object.defineProperty(x, "__rxUid", {
+  x[_rxUid] != null ? x[_rxUid] : (
+    Object.defineProperty(x, _rxUid, {
       enumerable: false,
       value: mkuid()
     })
-  ).__rxUid
+  )[_rxUid]
 ;
 
 // Need a "hash" that distinguishes different types and distinguishes object

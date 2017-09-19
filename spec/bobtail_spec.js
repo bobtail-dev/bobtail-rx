@@ -1988,14 +1988,14 @@ describe('smartUidify', function() {
     expect(rx.smartUidify(0)).toBe('0');
     expect(rx.smartUidify('0')).toBe('"0"');
   });
-  it('should attach non-enumerable __rxUid to objects', () =>
+  it('should attach non-enumerable _rxUid to objects', () =>
     (() => {
       let result = [];
       for (let x of [{}, []]) {
         let uid = rx.smartUidify(x);
         expect(uid).toEqual(jasmine.any(Number));
         expect(_.keys(x)).toEqual([]);
-        result.push(expect(x.__rxUid).toBe(uid));
+        result.push(expect(x[rx._rxUid]).toBe(uid));
       }
       return result;
     })()
