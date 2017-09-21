@@ -1668,26 +1668,46 @@ describe('asyncBind', function() {
 
 // todo: remove jquery dependency
 
-describe('promiseBind', () =>
-  it('should work', function() {
+describe('promiseBind', () => {
+  it('should work', function () {
     let retVal = rx.cell(42);
     let promise = (ret) => {
       return new Promise((resolve, reject) => _.defer(() => resolve(ret)));
     };
     let callback;
-    let secretToLife = rx.promiseBind(null, function() {
+    let secretToLife = rx.promiseBind(null, function () {
       let c = promise(retVal.get());
       callback = c;
       return c;
     });
-    expect(secretToLife.get()).toBe(null);
-    callback.then(function() {
-      expect(secretToLife.get()).toBe === 42;
+    expect(secretToLife.raw()).toBe(null);
+    callback.then(function () {
+      expect(secretToLife.raw()).toBe(42);
       retVal.set(5);
-      return callback.then(() => expect(secretToLife.get()).toBe(5));
+      return callback.then(() => expect(secretToLife.raw()).toBe(5));
     });
-  })
-);
+  });
+  it("by default  the cell's value should update to null if the request fails", (done) => {
+    let p;
+    let b = rx.promiseBind('wat', () => p = new Promise((resolve, reject) => _.defer(() => reject(42))));
+    rx.subOnce(b.onSet, () => {
+      expect(b.raw()).toBeNull();
+      done();
+    });
+  });
+  it("should allow users to update the cell even if the request fails", (done) => {
+    let p;
+    let b = rx.promiseBind(
+      'wat',
+      () => p = new Promise((resolve, reject) => _.defer(() => reject(42))),
+      reason => ({reason})
+    );
+    rx.subOnce(b.onSet, () => {
+      expect(b.raw()).toEqual({reason: 42});
+      done();
+    });
+  });
+});
 
 describe('lagBind', function() {
   let start, y;
