@@ -1410,8 +1410,10 @@ describe('flatten', function() {
     new Set([50]);
     flattened = rx.flatten([
       'A',
+
       xs.map(x => x.toUpperCase()),
       'D',
+      () => rx.flatten([i.get(), ys.all()]),
       ys.map(y => y),
       ['G','H'],
       bind(() => i.get().toUpperCase()),
@@ -1420,14 +1422,14 @@ describe('flatten', function() {
     return mapped = flattened.map(x => x.toLowerCase());
   });
   it('should flatten and react to observables', function() {
-    expect(flattened.all()).toEqual(['A','B','C','D','E','F','G','H','I','X','K','C','D','XKCD!']);
-    expect(mapped.all()).toEqual(['a','b','c','d','e','f','g','h','i','x','k','c','d','xkcd!']);
+    expect(flattened.all()).toEqual(['A','B','C','D','i','E','F','E','F','G','H','I','X','K','C','D','XKCD!']);
+    expect(mapped.all()).toEqual(['a','b','c','d','i','e','f','e','f','g','h','i','x','k','c','d','xkcd!']);
     i.set('j');
-    expect(flattened.all()).toEqual(['A','B','C','D','E','F','G','H','J','X','K','C','D','XKCD!']);
-    expect(mapped.all()).toEqual(['a','b','c','d','e','f','g','h','j','x','k','c','d','xkcd!']);
+    expect(flattened.all()).toEqual(['A','B','C','D','j','E','F','E','F','G','H','J','X','K','C','D','XKCD!']);
+    expect(mapped.all()).toEqual(['a','b','c','d','j','e','f','e','f','g','h','j','x','k','c','d','xkcd!']);
     ys.push('f');
-    expect(flattened.all()).toEqual(['A','B','C','D','E','F','f','G','H','J','X','K','C','D','XKCD!']);
-    expect(mapped.all()).toEqual(['a','b','c','d','e','f','f','g','h','j','x','k','c','d','xkcd!']);
+    expect(flattened.all()).toEqual(['A','B','C','D','j','E','F','f','E','F','f','G','H','J','X','K','C','D','XKCD!']);
+    expect(mapped.all()).toEqual(['a','b','c','d','j','e','f','f','e','f','f','g','h','j','x','k','c','d','xkcd!']);
   });
   // # todo: figure out alternate way to test
   // it('should not flatten jQuery objects (which are array-like)', function() {
@@ -1469,7 +1471,7 @@ describe('flatten', function() {
       1, 42, 500, 800, "ABC", "DEF", "GHI", "XYZ", 2
     ]);
   });
-});
+})
 
 describe('Ev', () =>
   it('should support scoped subscription', function() {

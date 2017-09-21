@@ -257,7 +257,7 @@ export let asyncBind = function(init, f) {
 
 export let promiseBind = (init, f) => asyncBind(
   init,
-  function() { return this.record(f).then(this.done); }
+  function() { return this.record(f).then(res => this.done(res)); }
 );
 
 export let bind = f => asyncBind(null, function() { return this.done(this.record(f)); });
@@ -1159,6 +1159,7 @@ let flattenHelper = function(x) {
   } else if (x instanceof ObsSet) { return flattenHelper(Array.from(x.values()));
   } else if (x instanceof ObsCell) { return flattenHelper(x.get());
   } else if (x instanceof Set) { return flattenHelper(Array.from(x));
+  } else if (_.isFunction(x)) { return flattenHelper(bind(x).get());
   } else if (_.isArray(x)) { return x.map(x_k => flattenHelper(x_k));
   } else { return x; }
 };

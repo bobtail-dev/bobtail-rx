@@ -12,13 +12,13 @@
   },
   "main": "dist/main.js",
   "scripts": {
-    "build": "npm run clean && npm run test && npm run babel && npm run minify",
+    "build": "npm run clean && npm run test && npm run eslint && npm run babel && npm run minify",
     "babel": "babel src/main.js --out-file dist/main.js --source-maps",
     "clean": "rm -rf dist && mkdir dist",
     "eslint": "eslint src/**/*.js --fix",
     "minify": "uglifyjs -mc --source-map --screw-ie8 -o dist/main.min.js dist/main.js",
     "typescript": "",
-    "test": "babel-node spec/run.js && npm run eslint"
+    "test": "babel-node spec/run.js"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
