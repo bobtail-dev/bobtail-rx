@@ -537,8 +537,19 @@
   };
 
   var promiseBind = exports.promiseBind = function promiseBind(init, f) {
+    var catcher = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {
+      return null;
+    };
     return asyncBind(init, function () {
-      return this.record(f).then(this.done);
+      var _this = this;
+
+      var promise = this.record(f);
+      promise.then(function (result) {
+        return _this.done(result);
+      }).catch(function (reason) {
+        return _this.done(catcher(reason));
+      });
+      return promise;
     });
   };
 
@@ -551,13 +562,13 @@
   var lagBind = exports.lagBind = function lagBind(lag, init, f) {
     var timeout = null;
     return asyncBind(init, function () {
-      var _this = this;
+      var _this2 = this;
 
       if (timeout != null) {
         clearTimeout(timeout);
       }
       return timeout = setTimeout(function () {
-        return _this.done(_this.record(f));
+        return _this2.done(_this2.record(f));
       }, lag);
     });
   };
@@ -565,7 +576,7 @@
   var postLagBind = exports.postLagBind = function postLagBind(init, f) {
     var timeout = null;
     return asyncBind(init, function () {
-      var _this2 = this;
+      var _this3 = this;
 
       var _record = this.record(f),
           val = _record.val,
@@ -575,7 +586,7 @@
         clearTimeout(timeout);
       }
       return timeout = setTimeout(function () {
-        return _this2.done(val);
+        return _this3.done(val);
       }, ms);
     });
   };
@@ -672,17 +683,17 @@
     function ObsCell(_base) {
       _classCallCheck(this, ObsCell);
 
-      var _this3 = _possibleConstructorReturn(this, (ObsCell.__proto__ || Object.getPrototypeOf(ObsCell)).call(this));
+      var _this4 = _possibleConstructorReturn(this, (ObsCell.__proto__ || Object.getPrototypeOf(ObsCell)).call(this));
 
-      _this3._base = _base != null ? _base : null;
-      _this3.onSet = _this3._mkEv(function () {
-        return [null, _this3._base];
+      _this4._base = _base != null ? _base : null;
+      _this4.onSet = _this4._mkEv(function () {
+        return [null, _this4._base];
       }); // [old, new]
-      _this3._shield = false;
-      autoSub(_this3.onSet, function () {
-        return _this3._refreshAll();
+      _this4._shield = false;
+      autoSub(_this4.onSet, function () {
+        return _this4._refreshAll();
       });
-      return _this3;
+      return _this4;
     }
 
     _createClass(ObsCell, [{
@@ -710,10 +721,10 @@
     }, {
       key: "all",
       value: function all() {
-        var _this4 = this;
+        var _this5 = this;
 
         this.subAll(function () {
-          return !_this4._shield;
+          return !_this5._shield;
         });
         return this._base;
       }
@@ -725,10 +736,10 @@
     }, {
       key: "readonly",
       value: function readonly() {
-        var _this5 = this;
+        var _this6 = this;
 
         return new DepCell(function () {
-          return _this5.all();
+          return _this6.all();
         });
       }
     }, {
@@ -759,10 +770,10 @@
     _createClass(SrcCell, [{
       key: "update",
       value: function update(x) {
-        var _this7 = this;
+        var _this8 = this;
 
         return recorder.mutating(function () {
-          return _this7._update(x);
+          return _this8._update(x);
         });
       }
     }, {
@@ -781,20 +792,20 @@
     function DepCell(body, init) {
       _classCallCheck(this, DepCell);
 
-      var _this8 = _possibleConstructorReturn(this, (DepCell.__proto__ || Object.getPrototypeOf(DepCell)).call(this, init != null ? init : null));
+      var _this9 = _possibleConstructorReturn(this, (DepCell.__proto__ || Object.getPrototypeOf(DepCell)).call(this, init != null ? init : null));
 
-      _this8.body = body != null ? body : null;
-      _this8.refreshing = false;
-      _this8.nestedBinds = [];
-      _this8.cleanups = [];
-      _this8.upstreamEvents = new Set();
-      return _this8;
+      _this9.body = body != null ? body : null;
+      _this9.refreshing = false;
+      _this9.nestedBinds = [];
+      _this9.cleanups = [];
+      _this9.upstreamEvents = new Set();
+      return _this9;
     }
 
     _createClass(DepCell, [{
       key: "refresh",
       value: function refresh() {
-        var _this9 = this;
+        var _this10 = this;
 
         if (!this.refreshing) {
           var old = this._base;
@@ -811,8 +822,8 @@
           // such a lagBind is more desirable (in the face of changing dependencies)
           // and whether on-completion is what's most generalizable.
           var realDone = function realDone(_base) {
-            _this9._base = _base;
-            return _this9.onSet.pub([old, _this9._base]);
+            _this10._base = _base;
+            return _this10.onSet.pub([old, _this10._base]);
           };
           var recorded = false;
           var syncResult = null;
@@ -823,20 +834,20 @@
               // TODO document why @refreshing exists
               // guards against recursively evaluating this recorded
               // function (@body or an async body) when calling `.get()`
-              if (!_this9.refreshing) {
+              if (!_this10.refreshing) {
                 var res = void 0;
-                _this9.disconnect();
+                _this10.disconnect();
                 if (recorded) {
                   throw new Error("this refresh has already recorded its dependencies");
                 }
-                _this9.refreshing = true;
+                _this10.refreshing = true;
                 recorded = true;
                 try {
-                  res = recorder.record(_this9, function () {
+                  res = recorder.record(_this10, function () {
                     return f.call(env);
                   });
                 } finally {
-                  _this9.refreshing = false;
+                  _this10.refreshing = false;
                 }
                 if (isSynchronous) {
                   realDone(syncResult);
@@ -846,7 +857,7 @@
             },
             done: function done(x) {
               if (old !== x) {
-                if (_this9.refreshing) {
+                if (_this10.refreshing) {
                   isSynchronous = true;
                   return syncResult = x;
                 } else {
@@ -864,7 +875,7 @@
     }, {
       key: "disconnect",
       value: function disconnect() {
-        var _this10 = this;
+        var _this11 = this;
 
         // TODO ordering of cleanup vs unsubscribes may require revisiting
         var _iteratorNormalCompletion3 = true;
@@ -920,7 +931,7 @@
         this.nestedBinds = [];
         this.cleanups = [];
         this.upstreamEvents.forEach(function (ev) {
-          return ev.downstreamCells.delete(_this10);
+          return ev.downstreamCells.delete(_this11);
         });
         return this.upstreamEvents.clear();
       }
@@ -956,20 +967,20 @@
         diff = basicDiff();
       }
 
-      var _this11 = _possibleConstructorReturn(this, (ObsArray.__proto__ || Object.getPrototypeOf(ObsArray)).call(this));
+      var _this12 = _possibleConstructorReturn(this, (ObsArray.__proto__ || Object.getPrototypeOf(ObsArray)).call(this));
 
-      _this11._cells = _cells;
-      _this11.diff = diff;
-      _this11.onChange = _this11._mkEv(function () {
-        return [0, [], _this11._cells.map(function (c) {
+      _this12._cells = _cells;
+      _this12.diff = diff;
+      _this12.onChange = _this12._mkEv(function () {
+        return [0, [], _this12._cells.map(function (c) {
           return c.raw();
         })];
       }); // [index, removed, added]
-      _this11.onChangeCells = _this11._mkEv(function () {
-        return [0, [], _this11._cells];
+      _this12.onChangeCells = _this12._mkEv(function () {
+        return [0, [], _this12._cells];
       }); // [index, removed, added]
-      _this11._indexed = null;
-      return _this11;
+      _this12._indexed = null;
+      return _this12;
     }
 
     _createClass(ObsArray, [{
@@ -990,10 +1001,10 @@
     }, {
       key: "readonly",
       value: function readonly() {
-        var _this12 = this;
+        var _this13 = this;
 
         return new DepArray(function () {
-          return _this12.all();
+          return _this13.all();
         });
       }
     }, {
@@ -1083,10 +1094,10 @@
     }, {
       key: "transform",
       value: function transform(f, diff) {
-        var _this13 = this;
+        var _this14 = this;
 
         return new DepArray(function () {
-          return f(_this13.all());
+          return f(_this14.all());
         }, diff);
       }
     }, {
@@ -1158,7 +1169,7 @@
     }, {
       key: "indexed",
       value: function indexed() {
-        var _this14 = this;
+        var _this15 = this;
 
         if (this._indexed == null) {
           this._indexed = new IndexedDepArray();
@@ -1168,7 +1179,7 @@
                 removed = _ref11[1],
                 added = _ref11[2];
 
-            return _this14._indexed.realSpliceCells(index, removed.length, added);
+            return _this15._indexed.realSpliceCells(index, removed.length, added);
           });
         }
         return this._indexed;
@@ -1185,7 +1196,7 @@
     }, {
       key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
-        var _this15 = this;
+        var _this16 = this;
 
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
         var removedElems = snap(function () {
@@ -1199,8 +1210,8 @@
           });
         });
         return transaction(function () {
-          _this15.onChangeCells.pub([index, removed, additions]);
-          return _this15.onChange.pub([index, removedElems, addedElems]);
+          _this16.onChangeCells.pub([index, removed, additions]);
+          return _this16.onChange.pub([index, removedElems, addedElems]);
         });
       }
     }, {
@@ -1211,12 +1222,12 @@
     }, {
       key: "_update",
       value: function _update(val, diff) {
-        var _this16 = this;
+        var _this17 = this;
 
         var left = void 0,
             splices = void 0;
         var old = snap(function () {
-          return _this16._cells.map(function (x) {
+          return _this17._cells.map(function (x) {
             return x.get();
           });
         });
@@ -1230,7 +1241,7 @@
               count = _ref13[1],
               additions = _ref13[2];
 
-          return _this16.realSplice(index, count, additions);
+          return _this17.realSplice(index, count, additions);
         });
       }
     }]);
@@ -1250,10 +1261,10 @@
     _createClass(SrcArray, [{
       key: "spliceArray",
       value: function spliceArray(index, count, additions) {
-        var _this18 = this;
+        var _this19 = this;
 
         return recorder.mutating(function () {
-          return _this18.realSplice(index, count, additions);
+          return _this19.realSplice(index, count, additions);
         });
       }
     }, {
@@ -1281,16 +1292,16 @@
     }, {
       key: "removeAll",
       value: function removeAll(x) {
-        var _this19 = this;
+        var _this20 = this;
 
         return transaction(function () {
           var i = (0, _underscore2.default)(snap(function () {
-            return _this19.all();
+            return _this20.all();
           })).indexOf(x);
           while (i >= 0) {
-            _this19.removeAt(i);
+            _this20.removeAt(i);
             i = snap(function () {
-              return (0, _underscore2.default)(_this19.all().slice(i));
+              return (0, _underscore2.default)(_this20.all().slice(i));
             }).indexOf(x);
           }
         });
@@ -1298,10 +1309,10 @@
     }, {
       key: "removeAt",
       value: function removeAt(index) {
-        var _this20 = this;
+        var _this21 = this;
 
         var val = snap(function () {
-          return _this20.at(index);
+          return _this21.at(index);
         });
         this.splice(index, 1);
         return val;
@@ -1309,19 +1320,19 @@
     }, {
       key: "push",
       value: function push(x) {
-        var _this21 = this;
+        var _this22 = this;
 
         return this.splice(snap(function () {
-          return _this21.length();
+          return _this22.length();
         }), 0, x);
       }
     }, {
       key: "pop",
       value: function pop() {
-        var _this22 = this;
+        var _this23 = this;
 
         return this.removeAt(snap(function () {
-          return _this22.length() - 1;
+          return _this23.length() - 1;
         }));
       }
     }, {
@@ -1332,10 +1343,10 @@
     }, {
       key: "replace",
       value: function replace(xs) {
-        var _this23 = this;
+        var _this24 = this;
 
         return this.spliceArray(0, snap(function () {
-          return _this23.length();
+          return _this24.length();
         }), xs);
       }
     }, {
@@ -1353,16 +1364,16 @@
     }, {
       key: "update",
       value: function update(xs) {
-        var _this24 = this;
+        var _this25 = this;
 
         return recorder.mutating(function () {
-          return _this24._update(xs);
+          return _this25._update(xs);
         });
       }
     }, {
       key: "move",
       value: function move(src, dest) {
-        var _this25 = this;
+        var _this26 = this;
 
         return transaction(function () {
           // moves element at src to index before dest
@@ -1371,7 +1382,7 @@
           }
 
           var len = snap(function () {
-            return _this25.length();
+            return _this26.length();
           });
 
           if (src < 0 || src > len - 1) {
@@ -1382,15 +1393,15 @@
           }
 
           var val = snap(function () {
-            return _this25.all()[src];
+            return _this26.all()[src];
           });
 
           if (src > dest) {
-            _this25.removeAt(src);
-            _this25.insert(val, dest);
+            _this26.removeAt(src);
+            _this26.insert(val, dest);
           } else {
-            _this25.insert(val, dest);
-            _this25.removeAt(src);
+            _this26.insert(val, dest);
+            _this26.removeAt(src);
           }
         });
       } // removeAt returns, but insert doesn't, so let's avoid inconsistency
@@ -1398,11 +1409,11 @@
     }, {
       key: "swap",
       value: function swap(i1, i2) {
-        var _this26 = this;
+        var _this27 = this;
 
         return transaction(function () {
           var len = snap(function () {
-            return _this26.length();
+            return _this27.length();
           });
           if (i1 < 0 || i1 > len - 1) {
             throw "i1 " + i1 + " is outside of bounds of array of length " + len;
@@ -1414,21 +1425,21 @@
           var first = Math.min(i1, i2);
           var second = Math.max(i1, i2);
 
-          _this26.move(first, second);
-          return _this26.move(second, first);
+          _this27.move(first, second);
+          return _this27.move(second, first);
         });
       }
     }, {
       key: "reverse",
       value: function reverse() {
-        var _this27 = this;
+        var _this28 = this;
 
         // Javascript's Array.reverse both reverses the Array and returns its new value
         this.update(snap(function () {
-          return _this27.all().reverse();
+          return _this28.all().reverse();
         }));
         return snap(function () {
-          return _this27.all();
+          return _this28.all();
         });
       }
     }]);
@@ -1458,20 +1469,20 @@
         xs = [];
       }
 
-      var _this29 = _possibleConstructorReturn(this, (IndexedDepArray.__proto__ || Object.getPrototypeOf(IndexedDepArray)).call(this, xs, diff));
+      var _this30 = _possibleConstructorReturn(this, (IndexedDepArray.__proto__ || Object.getPrototypeOf(IndexedDepArray)).call(this, xs, diff));
 
-      _this29.is = _this29._cells.map(function (x, i) {
+      _this30.is = _this30._cells.map(function (x, i) {
         return cell(i);
       });
-      _this29.onChangeCells = _this29._mkEv(function () {
-        return [0, [], _underscore2.default.zip(_this29._cells, _this29.is)];
+      _this30.onChangeCells = _this30._mkEv(function () {
+        return [0, [], _underscore2.default.zip(_this30._cells, _this30.is)];
       }); // [index, removed, added]
-      _this29.onChange = _this29._mkEv(function () {
-        return [0, [], _underscore2.default.zip(_this29.is, snap(function () {
-          return _this29.all();
+      _this30.onChange = _this30._mkEv(function () {
+        return [0, [], _underscore2.default.zip(_this30.is, snap(function () {
+          return _this30.all();
         }))];
       });
-      return _this29;
+      return _this30;
     }
     // TODO duplicate code with ObsArray
 
@@ -1528,7 +1539,7 @@
       key: "realSpliceCells",
       value: function realSpliceCells(index, count, additions) {
         var _is,
-            _this30 = this;
+            _this31 = this;
 
         var i = void 0;
         var removed = this._cells.splice.apply(this._cells, [index, count].concat(additions));
@@ -1557,8 +1568,8 @@
           });
         });
         return transaction(function () {
-          _this30.onChangeCells.pub([index, removed, _underscore2.default.zip(additions, newIs)]);
-          return _this30.onChange.pub([index, removedElems, _underscore2.default.zip(addedElems, newIs)]);
+          _this31.onChangeCells.pub([index, removed, _underscore2.default.zip(additions, newIs)]);
+          return _this31.onChange.pub([index, removedElems, _underscore2.default.zip(addedElems, newIs)]);
         });
       }
     }]);
@@ -1572,19 +1583,19 @@
     function DepArray(f, diff) {
       _classCallCheck(this, DepArray);
 
-      var _this31 = _possibleConstructorReturn(this, (DepArray.__proto__ || Object.getPrototypeOf(DepArray)).call(this, [], diff));
+      var _this32 = _possibleConstructorReturn(this, (DepArray.__proto__ || Object.getPrototypeOf(DepArray)).call(this, [], diff));
 
-      _this31.f = f;
+      _this32.f = f;
       autoSub(bind(function () {
-        return Array.from(_this31.f());
+        return Array.from(_this32.f());
       }).onSet, function (_ref18) {
         var _ref19 = _slicedToArray(_ref18, 2),
             old = _ref19[0],
             val = _ref19[1];
 
-        return _this31._update(val);
+        return _this32._update(val);
       });
-      return _this31;
+      return _this32;
     }
 
     return DepArray;
@@ -1596,10 +1607,10 @@
     function IndexedArray(_cells) {
       _classCallCheck(this, IndexedArray);
 
-      var _this32 = _possibleConstructorReturn(this, (IndexedArray.__proto__ || Object.getPrototypeOf(IndexedArray)).call(this));
+      var _this33 = _possibleConstructorReturn(this, (IndexedArray.__proto__ || Object.getPrototypeOf(IndexedArray)).call(this));
 
-      _this32._cells = _cells;
-      return _this32;
+      _this33._cells = _cells;
+      return _this33;
     }
 
     _createClass(IndexedArray, [{
@@ -1670,19 +1681,19 @@
         _base = new Map();
       }
 
-      var _this33 = _possibleConstructorReturn(this, (ObsMap.__proto__ || Object.getPrototypeOf(ObsMap)).call(this));
+      var _this34 = _possibleConstructorReturn(this, (ObsMap.__proto__ || Object.getPrototypeOf(ObsMap)).call(this));
 
-      _this33._base = objToJSMap(_base);
-      _this33.onAdd = _this33._mkEv(function () {
-        return new Map(_this33._base);
+      _this34._base = objToJSMap(_base);
+      _this34.onAdd = _this34._mkEv(function () {
+        return new Map(_this34._base);
       }); // {key: new...}
-      _this33.onRemove = _this33._mkEv(function () {
+      _this34.onRemove = _this34._mkEv(function () {
         return new Map();
       }); // {key: old...}
-      _this33.onChange = _this33._mkEv(function () {
+      _this34.onChange = _this34._mkEv(function () {
         return new Map();
       }); // {key: [old, new]...}
-      return _this33;
+      return _this34;
     }
 
     _createClass(ObsMap, [{
@@ -1713,10 +1724,10 @@
     }, {
       key: "readonly",
       value: function readonly() {
-        var _this34 = this;
+        var _this35 = this;
 
         return new DepMap(function () {
-          return _this34.all();
+          return _this35.all();
         });
       }
     }, {
@@ -1752,18 +1763,18 @@
     }, {
       key: "_update",
       value: function _update(other) {
-        var _this35 = this;
+        var _this36 = this;
 
         var val = void 0;
         var otherMap = objToJSMap(other);
         var ret = new Map(this._base);
         var removals = _underscore2.default.chain(Array.from(this._base.keys())).difference(Array.from(otherMap.keys())).map(function (k) {
-          return [k, mapPop(_this35._base, k)];
+          return [k, mapPop(_this36._base, k)];
         }).value();
 
         var additions = _underscore2.default.chain(Array.from(otherMap.keys())).difference(Array.from(this._base.keys())).map(function (k) {
           val = otherMap.get(k);
-          _this35._base.set(k, val);
+          _this36._base.set(k, val);
           return [k, val];
         }).value();
 
@@ -1772,26 +1783,26 @@
               k = _ref25[0],
               val = _ref25[1];
 
-          return _this35._base.has(k) && _this35._base.get(k) !== val;
+          return _this36._base.has(k) && _this36._base.get(k) !== val;
         }).map(function (_ref26) {
           var _ref27 = _slicedToArray(_ref26, 2),
               k = _ref27[0],
               val = _ref27[1];
 
-          var old = _this35._base.get(k);
-          _this35._base.set(k, val);
+          var old = _this36._base.get(k);
+          _this36._base.set(k, val);
           return [k, [old, val]];
         }).value();
 
         transaction(function () {
           if (removals.length) {
-            _this35.onRemove.pub(new Map(removals));
+            _this36.onRemove.pub(new Map(removals));
           }
           if (additions.length) {
-            _this35.onAdd.pub(new Map(additions));
+            _this36.onAdd.pub(new Map(additions));
           }
           if (changes.length) {
-            return _this35.onChange.pub(new Map(changes));
+            return _this36.onChange.pub(new Map(changes));
           }
         });
 
@@ -1814,10 +1825,10 @@
     _createClass(SrcMap, [{
       key: "put",
       value: function put(key, val) {
-        var _this37 = this;
+        var _this38 = this;
 
         return recorder.mutating(function () {
-          return _this37._realPut(key, val);
+          return _this38._realPut(key, val);
         });
       }
     }, {
@@ -1828,13 +1839,13 @@
     }, {
       key: "delete",
       value: function _delete(key) {
-        var _this38 = this;
+        var _this39 = this;
 
         return recorder.mutating(function () {
           var val = undefined;
-          if (_this38._base.has(key)) {
-            val = _this38._realRemove(key);
-            _this38.onRemove.pub(new Map([[key, val]]));
+          if (_this39._base.has(key)) {
+            val = _this39._realRemove(key);
+            _this39.onRemove.pub(new Map([[key, val]]));
           }
           return val;
         });
@@ -1847,13 +1858,13 @@
     }, {
       key: "clear",
       value: function clear() {
-        var _this39 = this;
+        var _this40 = this;
 
         return recorder.mutating(function () {
-          var removals = new Map(_this39._base);
-          _this39._base.clear();
+          var removals = new Map(_this40._base);
+          _this40._base.clear();
           if (removals.size) {
-            _this39.onRemove.pub(removals);
+            _this40.onRemove.pub(removals);
           }
           return removals;
         });
@@ -1861,10 +1872,10 @@
     }, {
       key: "update",
       value: function update(x) {
-        var _this40 = this;
+        var _this41 = this;
 
         return recorder.mutating(function () {
-          return _this40._update(x);
+          return _this41._update(x);
         });
       }
     }]);
@@ -1878,18 +1889,18 @@
     function DepMap(f) {
       _classCallCheck(this, DepMap);
 
-      var _this41 = _possibleConstructorReturn(this, (DepMap.__proto__ || Object.getPrototypeOf(DepMap)).call(this));
+      var _this42 = _possibleConstructorReturn(this, (DepMap.__proto__ || Object.getPrototypeOf(DepMap)).call(this));
 
-      _this41.f = f;
-      var c = bind(_this41.f);
+      _this42.f = f;
+      var c = bind(_this42.f);
       autoSub(c.onSet, function (_ref28) {
         var _ref29 = _slicedToArray(_ref28, 2),
             old = _ref29[0],
             val = _ref29[1];
 
-        return _this41._update(val);
+        return _this42._update(val);
       });
-      return _this41;
+      return _this42;
     }
 
     return DepMap;
@@ -1923,13 +1934,13 @@
         _base = new Set();
       }
 
-      var _this42 = _possibleConstructorReturn(this, (ObsSet.__proto__ || Object.getPrototypeOf(ObsSet)).call(this));
+      var _this43 = _possibleConstructorReturn(this, (ObsSet.__proto__ || Object.getPrototypeOf(ObsSet)).call(this));
 
-      _this42._base = objToJSSet(_base);
-      _this42.onChange = _this42._mkEv(function () {
-        return [_this42._base, new Set()];
+      _this43._base = objToJSSet(_base);
+      _this43.onChange = _this43._mkEv(function () {
+        return [_this43._base, new Set()];
       }); // additions, removals
-      return _this42;
+      return _this43;
     }
 
     _createClass(ObsSet, [{
@@ -1953,10 +1964,10 @@
     }, {
       key: "readonly",
       value: function readonly() {
-        var _this43 = this;
+        var _this44 = this;
 
         return new DepSet(function () {
-          return _this43.all();
+          return _this44.all();
         });
       }
     }, {
@@ -1989,46 +2000,46 @@
     }, {
       key: "union",
       value: function union(other) {
-        var _this44 = this;
+        var _this45 = this;
 
         return new DepSet(function () {
-          return _union(_this44.all(), _castOther(other));
+          return _union(_this45.all(), _castOther(other));
         });
       }
     }, {
       key: "intersection",
       value: function intersection(other) {
-        var _this45 = this;
+        var _this46 = this;
 
         return new DepSet(function () {
-          return _intersection(_this45.all(), _castOther(other));
+          return _intersection(_this46.all(), _castOther(other));
         });
       }
     }, {
       key: "difference",
       value: function difference(other) {
-        var _this46 = this;
+        var _this47 = this;
 
         return new DepSet(function () {
-          return _difference(_this46.all(), _castOther(other));
+          return _difference(_this47.all(), _castOther(other));
         });
       }
     }, {
       key: "symmetricDifference",
       value: function symmetricDifference(other) {
-        var _this47 = this;
+        var _this48 = this;
 
         return new DepSet(function () {
-          return _difference(_this47.union(other).all(), _this47.intersection(other).all());
+          return _difference(_this48.union(other).all(), _this48.intersection(other).all());
         });
       }
     }, {
       key: "_update",
       value: function _update(y) {
-        var _this48 = this;
+        var _this49 = this;
 
         return transaction(function () {
-          var old_ = new Set(_this48._base);
+          var old_ = new Set(_this49._base);
           var new_ = objToJSSet(y);
 
           var additions = new Set();
@@ -2047,13 +2058,13 @@
           });
 
           old_.forEach(function (item) {
-            return _this48._base.delete(item);
+            return _this49._base.delete(item);
           });
           new_.forEach(function (item) {
-            return _this48._base.add(item);
+            return _this49._base.add(item);
           });
 
-          _this48.onChange.pub([additions, removals]);
+          _this49.onChange.pub([additions, removals]);
           return old_;
         });
       }
@@ -2074,12 +2085,12 @@
     _createClass(SrcSet, [{
       key: "add",
       value: function add(item) {
-        var _this50 = this;
+        var _this51 = this;
 
         return recorder.mutating(function () {
-          if (!_this50._base.has(item)) {
-            _this50._base.add(item);
-            _this50.onChange.pub([new Set([item]), new Set()]);
+          if (!_this51._base.has(item)) {
+            _this51._base.add(item);
+            _this51.onChange.pub([new Set([item]), new Set()]);
           }
           return item;
         });
@@ -2092,12 +2103,12 @@
     }, {
       key: "delete",
       value: function _delete(item) {
-        var _this51 = this;
+        var _this52 = this;
 
         return recorder.mutating(function () {
-          if (_this51._base.has(item)) {
-            _this51._base.delete(item);
-            _this51.onChange.pub([new Set(), new Set([item])]);
+          if (_this52._base.has(item)) {
+            _this52._base.delete(item);
+            _this52.onChange.pub([new Set(), new Set([item])]);
           }
           return item;
         });
@@ -2110,13 +2121,13 @@
     }, {
       key: "clear",
       value: function clear() {
-        var _this52 = this;
+        var _this53 = this;
 
         return recorder.mutating(function () {
-          var removals = new Set(_this52._base);
-          if (_this52._base.size) {
-            _this52._base.clear();
-            _this52.onChange.pub([new Set(), removals]);
+          var removals = new Set(_this53._base);
+          if (_this53._base.size) {
+            _this53._base.clear();
+            _this53.onChange.pub([new Set(), removals]);
           }
           return removals;
         });
@@ -2124,10 +2135,10 @@
     }, {
       key: "update",
       value: function update(y) {
-        var _this53 = this;
+        var _this54 = this;
 
         return recorder.mutating(function () {
-          return _this53._update(y);
+          return _this54._update(y);
         });
       }
     }]);
@@ -2141,18 +2152,18 @@
     function DepSet(f) {
       _classCallCheck(this, DepSet);
 
-      var _this54 = _possibleConstructorReturn(this, (DepSet.__proto__ || Object.getPrototypeOf(DepSet)).call(this));
+      var _this55 = _possibleConstructorReturn(this, (DepSet.__proto__ || Object.getPrototypeOf(DepSet)).call(this));
 
-      _this54.f = f;
-      var c = bind(_this54.f);
+      _this55.f = f;
+      var c = bind(_this55.f);
       autoSub(c.onSet, function (_ref34) {
         var _ref35 = _slicedToArray(_ref34, 2),
             old = _ref35[0],
             val = _ref35[1];
 
-        return _this54._update(val);
+        return _this55._update(val);
       });
-      return _this54;
+      return _this55;
     }
 
     return DepSet;

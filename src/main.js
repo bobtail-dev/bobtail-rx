@@ -255,9 +255,13 @@ export let asyncBind = function(init, f) {
   return dep;
 };
 
-export let promiseBind = (init, f) => asyncBind(
+export let promiseBind = (init, f, catcher=() => null) => asyncBind(
   init,
-  function() { return this.record(f).then(this.done); }
+  function() {
+    let promise = this.record(f);
+    promise.then(result => this.done(result)).catch(reason => this.done(catcher(reason)));
+    return promise;
+  }
 );
 
 export let bind = f => asyncBind(null, function() { return this.done(this.record(f)); });
