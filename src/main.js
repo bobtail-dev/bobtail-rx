@@ -1151,19 +1151,19 @@ export let cast = function(value, type) {
 // Reactive utilities
 //
 
-export let flatten = xs => new DepArray(() => _
-  .chain(flattenHelper([xs]))
+export const flatten = (xs, flattener=flattenHelper) => new DepArray(() => _
+  .chain(flattener([xs]))
   .flatten()
   .filter(x => x != null)
   .value()
 );
 
-let flattenHelper = function(x) {
-  if (x instanceof ObsArray) { return flattenHelper(x.all());
-  } else if (x instanceof ObsSet) { return flattenHelper(Array.from(x.values()));
-  } else if (x instanceof ObsCell) { return flattenHelper(x.get());
-  } else if (x instanceof Set) { return flattenHelper(Array.from(x));
-  } else if (_.isArray(x)) { return x.map(x_k => flattenHelper(x_k));
+export const flattenHelper = function(x, flattener=flattenHelper) {
+  if (x instanceof ObsArray) { return flattener(x.all());
+  } else if (x instanceof ObsSet) { return flattener(Array.from(x.values()));
+  } else if (x instanceof ObsCell) { return flattener(x.get());
+  } else if (x instanceof Set) { return flattener(Array.from(x));
+  } else if (_.isArray(x)) { return x.map(x_k => flattener(x_k));
   } else { return x; }
 };
 
