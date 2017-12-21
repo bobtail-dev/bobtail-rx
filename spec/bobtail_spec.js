@@ -1438,6 +1438,20 @@ describe('flatten', function() {
   //   expect(flattened.at(0).is('body')).toBe(true);
   //   expect(flattened.at(1).is('div')).toBe(true);
   // });
+  it('should be able to take a custom flattener', () => {
+    const flattener = (x) => _.isFunction(x) ? flattener(x()) : rx.flattenHelper(x, flattener);
+    flattened = rx.flatten([
+      1,
+      rx.cell(),
+      undefined,
+      [undefined],
+      () => undefined,
+      rx.array([null]),
+      2,
+      () => () => 3
+    ], flattener);
+    expect(flattened.all()).toEqual([1,2,3]);
+  });
   it('should remove undefineds/nulls (for convenient conditionals)', function() {
     flattened = rx.flatten([
       1,

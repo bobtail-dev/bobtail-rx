@@ -16,7 +16,7 @@
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.transaction = exports.smartUidify = exports.uidify = exports._rxUid = exports.basicDiff = exports.cellToSet = exports.cellToMap = exports.cellToArray = exports.flatten = exports.cast = exports.set = exports.map = exports.array = exports.cell = exports.autoReactify = exports.reactify = exports.unlift = exports.lift = exports.liftSpec = exports.DepSet = exports.SrcSet = exports.ObsSet = exports.DepMap = exports.SrcMap = exports.ObsMap = exports.concat = exports.IndexedArray = exports.DepArray = exports.IndexedDepArray = exports.MappedDepArray = exports.SrcArray = exports.ObsArray = exports.DepCell = exports.SrcCell = exports.ObsCell = exports.ObsBase = exports.subOnce = exports.autoSub = exports.onDispose = exports.snap = exports.postLagBind = exports.lagBind = exports.bind = exports.promiseBind = exports.asyncBind = exports.hideMutationWarnings = exports._recorder = exports.types = exports.allDownstream = exports.upstream = exports.skipFirst = exports.Ev = exports._depMgr = exports.DepMgr = undefined;
+  exports.transaction = exports.smartUidify = exports.uidify = exports._rxUid = exports.basicDiff = exports.cellToSet = exports.cellToMap = exports.cellToArray = exports.flattenHelper = exports.flatten = exports.cast = exports.set = exports.map = exports.array = exports.cell = exports.autoReactify = exports.reactify = exports.unlift = exports.lift = exports.liftSpec = exports.DepSet = exports.SrcSet = exports.ObsSet = exports.DepMap = exports.SrcMap = exports.ObsMap = exports.concat = exports.IndexedArray = exports.DepArray = exports.IndexedDepArray = exports.MappedDepArray = exports.SrcArray = exports.ObsArray = exports.DepCell = exports.SrcCell = exports.ObsCell = exports.ObsBase = exports.subOnce = exports.autoSub = exports.onDispose = exports.snap = exports.postLagBind = exports.lagBind = exports.bind = exports.promiseBind = exports.asyncBind = exports.hideMutationWarnings = exports._recorder = exports.types = exports.allDownstream = exports.upstream = exports.skipFirst = exports.Ev = exports._depMgr = exports.DepMgr = undefined;
 
   var _underscore2 = _interopRequireDefault(_underscore);
 
@@ -2482,26 +2482,29 @@
   //
 
   var _flatten = function _flatten(xs) {
+    var flattener = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : flattenHelper;
     return new DepArray(function () {
-      return _underscore2.default.chain(flattenHelper([xs])).flatten().filter(function (x) {
+      return _underscore2.default.chain(flattener([xs])).flatten().filter(function (x) {
         return x != null;
       }).value();
     });
   };
 
   exports.flatten = _flatten;
-  var flattenHelper = function flattenHelper(x) {
+  var flattenHelper = exports.flattenHelper = function flattenHelper(x) {
+    var flattener = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : flattenHelper;
+
     if (x instanceof ObsArray) {
-      return flattenHelper(x.all());
+      return flattener(x.all());
     } else if (x instanceof ObsSet) {
-      return flattenHelper(Array.from(x.values()));
+      return flattener(Array.from(x.values()));
     } else if (x instanceof ObsCell) {
-      return flattenHelper(x.get());
+      return flattener(x.get());
     } else if (x instanceof Set) {
-      return flattenHelper(Array.from(x));
+      return flattener(Array.from(x));
     } else if (_underscore2.default.isArray(x)) {
       return x.map(function (x_k) {
-        return flattenHelper(x_k);
+        return flattener(x_k);
       });
     } else {
       return x;
