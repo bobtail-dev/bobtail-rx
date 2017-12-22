@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import * as rx from '../src/main.js';
 let {snap, bind, Ev} = rx;
-jasmine.CATCH_EXCEPTIONS = false;;
+jasmine.CATCH_EXCEPTIONS = false;
 
 describe('ObsBase', () => it('should start', function() {}));
 
@@ -1657,23 +1657,26 @@ describe('asyncBind', function() {
       expect(y.get()).toBe('none');
       _.defer(() => expect(y.get()).toBe(1));
     });
-    it('should support @done called from within @record', function() {
+    it('should support @done called from within @record', (done) => {
       let x = rx.cell();
       let y = rx.cell(1);
-      let z = rx.asyncBind('none', function() { return this.record(() => {
-        if ((x.get() == null)) { return this.done(0); }
-        let sum = x.get() + y.get();
-        _.defer(() => this.done(sum));
+      let z = rx.asyncBind('none', function() {
+        return this.record(() => {
+          if ((x.get() == null)) { return this.done(0); }
+          let sum = x.get() + y.get();
+          _.defer(() => this.done(sum));
+        });
       });
-       });
       let w = bind(() => z.get());
       expect(w.get()).toBe(0);
-      _.defer(function() {
-        x.set(2);
-        _.defer(function() {
-          expect(w.get()).toBe(3);
-          x.set(5);
-          _.defer(() => expect(w.get()).toBe(6));
+      x.set(2);
+      _.defer(() => {
+        expect(z.get()).toBe(3);
+        expect(w.get()).toBe(3);
+        x.set(5);
+        _.defer(() => {
+          expect(w.get()).toBe(6);
+          done();
         });
       });
     });
@@ -2162,5 +2165,51 @@ describe('.to casting', () => {
     expect(map.toArray().raw()).toEqual([['c', 3], ['d', 4], ['joe', 'schmoe']]);
     expect(map.toMap().raw()).toEqual(new Map([['c', 3], ['d', 4], ['joe', 'schmoe']]));
     expect(Array.from(map.toSet().raw())).toEqual([['c', 3], ['d', 4], ['joe', 'schmoe']]);
+  });
+});
+
+describe('changing dependencies mid-refresh', () => {
+  let stateCell;
+  let loadingCell;
+  let orgsCell;
+  let filteredOrgsCell;
+  let body;
+
+  beforeEach(() => {
+    stateCell = rx.cell({state: "unloaded"});
+    loadingCell = rx.bind(() => stateCell.get().state === "loading");
+    orgsCell = rx.bind(() => stateCell.get().data);
+    filteredOrgsCell = rx.bind(() => {
+      const orgs = orgsCell.get();
+      if (orgs && orgs.length > 0) {
+        return orgs.filter(function(o) { return o.name.indexOf("Acme") >= 0;});
+      } else {
+        return orgs;
+      }
+    });
+    body = rx.bind(() => {
+      if (loadingCell.get()) {
+        return false;
+      }
+      return filteredOrgsCell.get();
+    });
+  });
+
+  it('should still leave everything correctly refreshed', () => {
+    stateCell.set({state: "loading"});
+    expect(body.raw()).toBe(false);
+
+    stateCell.set({state: "loaded", data: [{name:"Acme"}, {name: "Infer"}]});
+    expect(body.raw()).toEqual([{name: "Acme"}]);
+
+    stateCell.set({state: "loaded", data: [{name:"Acme"}, {name: "Infer"}]});
+    expect(body.raw()).toEqual([{name: "Acme"}]);
+  });
+  it('should also work in transactions', () => {
+    rx.transaction(() => {
+      stateCell.set({state: "loading"});
+      stateCell.set({state: "loaded", data: [{name:"Acme"}, {name: "Infer"}]});
+    });
+    expect(body.raw()).toEqual([{name: "Acme"}]);
   });
 });
