@@ -143,6 +143,42 @@
     }));
   };
 
+  function mkSetQueue(elems) {
+    var ret = new Set(elems);
+    ret.pop = function () {
+      var first = ret.keys().next().value;
+      ret.delete(first);
+      return first;
+    };
+    ret.extend = function (elems) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = elems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var e = _step.value;
+
+          ret.add(e);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    };
+    return ret;
+  }
+
   var popKey = function popKey(x, k) {
     if (!(k in x)) {
       throw new Error("object has no key " + k);
@@ -166,29 +202,29 @@
     }
     var map = Object.create != null ? Object.create(null) : {};
     if (_underscore2.default.isArray(xs)) {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator = xs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var _step$value = _slicedToArray(_step.value, 2);
+        for (var _iterator2 = xs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _step2$value = _slicedToArray(_step2.value, 2);
 
-          k = _step$value[0];
-          v = _step$value[1];
+          k = _step2$value[0];
+          v = _step2$value[1];
           map[k] = v;
         }
       } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
           }
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          if (_didIteratorError2) {
+            throw _iteratorError2;
           }
         }
       }
@@ -202,26 +238,26 @@
 
   var sum = function sum(xs) {
     var n = 0;
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
 
     try {
-      for (var _iterator2 = xs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var x = _step2.value;
+      for (var _iterator3 = xs[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var x = _step3.value;
         n += x;
       }
     } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
         }
       } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
+        if (_didIteratorError3) {
+          throw _iteratorError3;
         }
       }
     }
@@ -701,21 +737,23 @@
       value: function _refreshAll() {
         var downstreamCells = this.onSet.downstreamCells;
         if (downstreamCells.size && !this._shield) {
-          this._shield = true;
-          var _cells2 = allDownstream.apply(undefined, _toConsumableArray(Array.from(downstreamCells) || []));
+          var cur = void 0;
+          var _cells2 = mkSetQueue(allDownstream.apply(undefined, _toConsumableArray(Array.from(downstreamCells) || [])));
           _cells2.forEach(function (c) {
             return c._shield = true;
           });
-          try {
-            return _cells2.forEach(function (c) {
-              return c.refresh();
-            });
-          } finally {
-            _cells2.forEach(function (c) {
-              return c._shield = false;
-            });
-            this._shield = false;
+
+          this._shield = true;
+          while (_cells2.size) {
+            try {
+              cur = _cells2.pop();
+              cur.refresh();
+              _cells2.extend(cur.onSet.downstreamCells);
+            } finally {
+              cur._shield = false;
+            }
           }
+          this._shield = false;
         }
       }
     }, {
@@ -878,40 +916,15 @@
         var _this11 = this;
 
         // TODO ordering of cleanup vs unsubscribes may require revisiting
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
-
-        try {
-          for (var _iterator3 = this.cleanups[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            var cleanup = _step3.value;
-
-            cleanup();
-          }
-        } catch (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
-        } finally {
-          try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-              _iterator3.return();
-            }
-          } finally {
-            if (_didIteratorError3) {
-              throw _iteratorError3;
-            }
-          }
-        }
-
         var _iteratorNormalCompletion4 = true;
         var _didIteratorError4 = false;
         var _iteratorError4 = undefined;
 
         try {
-          for (var _iterator4 = this.nestedBinds[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-            var nestedBind = _step4.value;
+          for (var _iterator4 = this.cleanups[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var cleanup = _step4.value;
 
-            nestedBind.disconnect();
+            cleanup();
           }
         } catch (err) {
           _didIteratorError4 = true;
@@ -924,6 +937,31 @@
           } finally {
             if (_didIteratorError4) {
               throw _iteratorError4;
+            }
+          }
+        }
+
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
+
+        try {
+          for (var _iterator5 = this.nestedBinds[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            var nestedBind = _step5.value;
+
+            nestedBind.disconnect();
+          }
+        } catch (err) {
+          _didIteratorError5 = true;
+          _iteratorError5 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+              _iterator5.return();
+            }
+          } finally {
+            if (_didIteratorError5) {
+              throw _iteratorError5;
             }
           }
         }
@@ -1057,27 +1095,27 @@
               removed = _ref9[1],
               added = _ref9[2];
 
-          var _iteratorNormalCompletion5 = true;
-          var _didIteratorError5 = false;
-          var _iteratorError5 = undefined;
+          var _iteratorNormalCompletion6 = true;
+          var _didIteratorError6 = false;
+          var _iteratorError6 = undefined;
 
           try {
-            for (var _iterator5 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-              var _cell = _step5.value;
+            for (var _iterator6 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+              var _cell = _step6.value;
 
               _cell.disconnect();
             }
           } catch (err) {
-            _didIteratorError5 = true;
-            _iteratorError5 = err;
+            _didIteratorError6 = true;
+            _iteratorError6 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
+              if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                _iterator6.return();
               }
             } finally {
-              if (_didIteratorError5) {
-                throw _iteratorError5;
+              if (_didIteratorError6) {
+                throw _iteratorError6;
               }
             }
           }
@@ -1497,27 +1535,27 @@
               removed = _ref15[1],
               added = _ref15[2];
 
-          var _iteratorNormalCompletion6 = true;
-          var _didIteratorError6 = false;
-          var _iteratorError6 = undefined;
+          var _iteratorNormalCompletion7 = true;
+          var _didIteratorError7 = false;
+          var _iteratorError7 = undefined;
 
           try {
-            for (var _iterator6 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-              var _cell2 = _step6.value;
+            for (var _iterator7 = ys._cells.slice(index, index + removed.length)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+              var _cell2 = _step7.value;
 
               _cell2.disconnect();
             }
           } catch (err) {
-            _didIteratorError6 = true;
-            _iteratorError6 = err;
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                _iterator6.return();
+              if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                _iterator7.return();
               }
             } finally {
-              if (_didIteratorError6) {
-                throw _iteratorError6;
+              if (_didIteratorError7) {
+                throw _iteratorError7;
               }
             }
           }
@@ -2173,13 +2211,13 @@
     var result = [];
     var val = void 0,
         type = void 0;
-    var _iteratorNormalCompletion7 = true;
-    var _didIteratorError7 = false;
-    var _iteratorError7 = undefined;
+    var _iteratorNormalCompletion8 = true;
+    var _didIteratorError8 = false;
+    var _iteratorError8 = undefined;
 
     try {
-      for (var _iterator7 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-        var name = _step7.value;
+      for (var _iterator8 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+        var name = _step8.value;
 
         val = obj[name];
         if (val != null && [ObsMap, ObsCell, ObsArray, ObsSet].some(function (cls) {
@@ -2200,16 +2238,16 @@
         result.push([name, { type: type, val: val }]);
       }
     } catch (err) {
-      _didIteratorError7 = true;
-      _iteratorError7 = err;
+      _didIteratorError8 = true;
+      _iteratorError8 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion7 && _iterator7.return) {
-          _iterator7.return();
+        if (!_iteratorNormalCompletion8 && _iterator8.return) {
+          _iterator8.return();
         }
       } finally {
-        if (_didIteratorError7) {
-          throw _iteratorError7;
+        if (_didIteratorError8) {
+          throw _iteratorError8;
         }
       }
     }
@@ -2332,13 +2370,13 @@
   var autoReactify = exports.autoReactify = function autoReactify(obj) {
     var result = [];
 
-    var _iteratorNormalCompletion8 = true;
-    var _didIteratorError8 = false;
-    var _iteratorError8 = undefined;
+    var _iteratorNormalCompletion9 = true;
+    var _didIteratorError9 = false;
+    var _iteratorError9 = undefined;
 
     try {
-      for (var _iterator8 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-        var name = _step8.value;
+      for (var _iterator9 = Object.getOwnPropertyNames(obj)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+        var name = _step9.value;
 
         var val = obj[name];
         if (val instanceof ObsBase) {
@@ -2348,16 +2386,16 @@
         result.push([name, { type: type, val: val }]);
       }
     } catch (err) {
-      _didIteratorError8 = true;
-      _iteratorError8 = err;
+      _didIteratorError9 = true;
+      _iteratorError9 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion8 && _iterator8.return) {
-          _iterator8.return();
+        if (!_iteratorNormalCompletion9 && _iterator9.return) {
+          _iterator9.return();
         }
       } finally {
-        if (_didIteratorError8) {
-          throw _iteratorError8;
+        if (_didIteratorError9) {
+          throw _iteratorError9;
         }
       }
     }

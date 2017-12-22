@@ -7,6 +7,21 @@ let union = (first, second) => new Set([...Array.from(first), ...Array.from(seco
 let intersection = (first, second) => new Set(Array.from(first).filter(item => second.has(item)));
 let difference = (first, second) => new Set(Array.from(first).filter(item => !second.has(item)));
 
+function mkSetQueue (elems) {
+  let ret = new Set(elems);
+  ret.pop = () => {
+    const first = ret.keys().next().value;
+    ret.delete(first);
+    return first;
+  };
+  ret.extend = (elems) => {
+    for (let e of elems) {
+      ret.add(e);
+    }
+  };
+  return ret;
+}
+
 let popKey = function(x, k) {
   if (!(k in x)) {
     throw new Error(`object has no key ${k}`);
@@ -341,14 +356,22 @@ export class ObsCell extends ObsBase {
   _refreshAll() {
     let downstreamCells = this.onSet.downstreamCells;
     if (downstreamCells.size && !this._shield) {
-      this._shield = true;
-      let cells = allDownstream(...Array.from(downstreamCells) || []);
+      let cur;
+      let cells = mkSetQueue(allDownstream(...Array.from(downstreamCells) || []));
       cells.forEach(c => c._shield = true);
-      try { return cells.forEach(c => c.refresh()); }
-      finally {
-        cells.forEach(c => c._shield = false);
-        this._shield = false;
+
+      this._shield = true;
+      while (cells.size) {
+        try {
+          cur = cells.pop();
+          cur.refresh();
+          cells.extend(cur.onSet.downstreamCells);
+        }
+        finally {
+          cur._shield = false;
+        }
       }
+      this._shield = false;
     }
   }
 
